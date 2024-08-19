@@ -7,9 +7,10 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 import pandas as np
 import matplotlib.pyplot as plt
+from IA_Tetris.params import *
 
 #path pour démarrer le jeu
-rom_path = '/Users/julienbellande/Desktop/tetris.gb'
+rom_path = ROM_PATH
 
 class TetrisEnv() :
 
