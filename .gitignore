@@ -164,6 +164,3 @@ cython_debug/
 # Raw data
 raw_data/
 data/
-
-# Notebook general
-notebooks/Test-PyBoy.ipynb
