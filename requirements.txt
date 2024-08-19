@@ -1,1 +1,3 @@
+pyboy
+stable-baselines3[extra]
 tensorflow
