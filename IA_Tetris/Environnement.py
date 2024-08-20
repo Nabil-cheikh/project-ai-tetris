@@ -16,7 +16,7 @@ class TetrisEnv() :
 
     def __init__(self, rom_path):
         self.pyboy = PyBoy(rom_path)
-        self.tetris = GameWrapperTetris()
+        self.tetris = self.pyboy.game_wrapper
         self.tetris.game_area_mapping(self.tetris.mapping_compressed, 0)
         self.tetris.start_game()
         self.pyboy.tick()
