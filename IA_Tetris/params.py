@@ -18,12 +18,14 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 
 ############ CONSTANTS ############
-COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed']
+COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
 
 DTYPES = {
     'Time': 'timestamp',
     'Score': 'int',
     'Lines': 'int',
     'Rewards': 'int',
-    'NbBlocUsed': 'int'
+    'NbBlocUsed': 'int',
+    'Seed': 'int',
+    'Inputs': 'list'
 }
