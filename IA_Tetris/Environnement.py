@@ -6,7 +6,6 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
 import pandas as np
 import matplotlib.pyplot as plt
-from pyboy.plugins.game_wrapper_tetris import GameWrapperTetris
 from IA_Tetris.params import *
 
 #path pour démarrer le jeu
