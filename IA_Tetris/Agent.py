@@ -1,8 +1,7 @@
-import keras
 from collections import deque
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.optimizers import Adam
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
 
 class TetrisAgent:
 
@@ -22,6 +21,7 @@ class TetrisAgent:
 
 
     def _build_model(self):
+        '''Builds a Keras deep neural network model'''
         model = Sequential()
         model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
@@ -30,3 +30,41 @@ class TetrisAgent:
         model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=0.001))
 
         return model
+
+    def add_to_memory(self, current_state, next_state, action, reward):
+        '''Adds a play to the experience replay memory buffer'''
+        self.memory.append((current_state, next_state, action, reward))
+
+
+    def train(self, batch_size=32, epochs=3):
+        '''Trains the agent'''
+        n = len(self.memory)
+
+        if n >= self.replay_start_size and n >= batch_size:
+
+            batch = random.sample(self.memory, batch_size)
+
+            # Get the expected score for the next states, in batch (better performance)
+            next_states = np.array([x[1] for x in batch])
+            next_qs = [x[0] for x in self.model.predict(next_states)]
+
+            x = []
+            y = []
+
+            # Build xy structure to fit the model in batch (better performance)
+            for i, (state, _, reward, done) in enumerate(batch):
+                if not done:
+                    # Partial Q formula
+                    new_q = reward + self.discount * next_qs[i]
+                else:
+                    new_q = reward
+
+                x.append(state)
+                y.append(new_q)
+
+            # Fit the model to the given values
+            self.model.fit(np.array(x), np.array(y), batch_size=batch_size, epochs=epochs, verbose=0)
+
+            # Update the exploration variable
+            if self.epsilon > self.epsilon_min:
+                self.epsilon -= self.epsilon_decay
