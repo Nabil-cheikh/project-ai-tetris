@@ -7,7 +7,7 @@ from keras.optimizers import Adam
 class TetrisAgent:
 
     def __init__(self, is_eval=False, model_name=""):
-        self.action_size = 3 # sit, buy, sell
+        self.action_size = 5 # NO TOUCH, down, left, right, orientation
         self.memory = deque(maxlen=1000)
         self.inventory = []
         self.model_name = model_name
@@ -26,7 +26,7 @@ class TetrisAgent:
         model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
-        model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam(lr=0.001))
+        model.add(Dense(self.action_size, activation="softmax"))
+        model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=0.001))
 
         return model
