@@ -41,11 +41,14 @@ class TetrisEnv() :
         elif action == 4:
             self.pyboy.send_input(WindowEvent.PRESS_BUTTON_B)
         self.pyboy.tick()
-        self.frame_count = 0
+        self.frame_count += 1
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200
         return rewards
+
+    def bumpiness_rewards():
+        pass
 
     def heigh_rewards(self):
         rewards += 0
@@ -67,30 +70,27 @@ class TetrisEnv() :
         for i in range(0, rows):
             for j in range(0, cols):
                 if self.tetris.game_area()[i, j] == 47:
-                    hole_middle = [self.tetris.game_area()[i-1, j-1],
-                                self.tetris.game_area()[i-1, j],
-                                self.tetris.game_area()[i-1, j+1],
-                                self.tetris.game_area()[i, j-1],
-                                self.tetris.game_area()[i, j+1],
-                                self.tetris.game_area()[i+1, j-1],
-                                self.tetris.game_area()[i+1, j],
-                                self.tetris.game_area()[i+1, j+1]]
+                    hole_middle = [self.tetris.game_area()[i, j+1]]
 
                     if all(h != 47 for h in hole_middle):
                         hole += 1
 
-        rewards = hole*1000
+        rewards = hole*(-1000)
         return rewards
-    # dans le init  self.frame_count = 0
-#dans le action self.frame_count += 47
+
     def frame_rewards(self):
         self.frame_count = 0
         reward = self.frame_count * -1
         return reward
 
+    def get_rewards(self):
+        rewards = self.frame_rewards + self.hole_rewards
+        + self.score_rewards + self.heigh_rewards + self.bumpiness_rewards
+        + self.lines_rewards
+        return rewards
+
     def reset(self):
         self.tetris.reset_game()
-
 
     def close(self):
         self.pyboy.stop()
