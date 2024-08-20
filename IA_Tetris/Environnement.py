@@ -25,7 +25,6 @@ class TetrisEnv() :
         pass
 
     def actions(self):
-
         pass
 
     def rewards():
@@ -44,6 +43,5 @@ class TetrisEnv() :
 
 
 env = TetrisEnv(rom_path)
-
 while env.pyboy.tick():
     pass
