@@ -1,6 +1,5 @@
 from pyboy import PyBoy
 from pyboy.utils import WindowEvent
-import time
 import numpy as np
 import gymnasium as gym
 from stable_baselines3 import PPO
@@ -21,6 +20,7 @@ class TetrisEnv() :
         self.tetris.game_area_mapping(self.tetris.mapping_compressed, 0)
         self.tetris.start_game()
         self.pyboy.tick()
+        self.frame_count = 0
 
     def state(self):
         game_area = self.tetris.game_area()
@@ -41,20 +41,52 @@ class TetrisEnv() :
         elif action == 4:
             self.pyboy.send_input(WindowEvent.PRESS_BUTTON_B)
         self.pyboy.tick()
+        self.frame_count = 0
 
     def lines_rewards(self):
-        rewards = self.tetris.lines*1
+        rewards = self.tetris.lines*200
         return rewards
 
     def heigh_rewards(self):
         rewards += 0
         for i in self.tetris.game_area():
             if i == 47:
-                rewards = 47*1
+                rewards = 1
         for i in self.tetris.game_area():
             if i != 47:
-                rewards = -100
+                rewards = -10
         return rewards
+
+    def score_rewards(self):
+        rewards = self.tetris.score*1
+        return rewards
+
+    def hole_rewards(self):
+        rows, cols = self.tetris.game_area()
+        hole = 0
+        for i in range(0, rows):
+            for j in range(0, cols):
+                if self.tetris.game_area()[i, j] == 47:
+                    hole_middle = [self.tetris.game_area()[i-1, j-1],
+                                self.tetris.game_area()[i-1, j],
+                                self.tetris.game_area()[i-1, j+1],
+                                self.tetris.game_area()[i, j-1],
+                                self.tetris.game_area()[i, j+1],
+                                self.tetris.game_area()[i+1, j-1],
+                                self.tetris.game_area()[i+1, j],
+                                self.tetris.game_area()[i+1, j+1]]
+
+                    if all(h != 47 for h in hole_middle):
+                        hole += 1
+
+        rewards = hole*1000
+        return rewards
+    # dans le init  self.frame_count = 0
+#dans le action self.frame_count += 47
+    def frame_rewards(self):
+        self.frame_count = 0
+        reward = self.frame_count * -1
+        return reward
 
     def reset(self):
         self.tetris.reset_game()
