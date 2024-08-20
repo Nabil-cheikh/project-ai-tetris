@@ -16,29 +16,30 @@ class TetrisEnv() :
     def __init__(self, rom_path):
         self.pyboy = PyBoy(rom_path)
         self.pyboy.set_emulation_speed(0)
-        tetris = self.pyboy.game_wrapper
-        tetris.game_area_mapping(tetris.mapping_compressed, 0)
-        tetris.start_game()
+        self.tetris = self.pyboy.game_wrapper
+        self.tetris.game_area_mapping(self.tetris.mapping_compressed, 0)
+        self.tetris.start_game()
         self.pyboy.tick()
 
-    def state():
-        pass
-
-    def actions(self):
-        pass
+    def state(self):
+        game_area = self.tetris.game_area()
+        return game_area
 
     def rewards():
+        rewards = X * scoring
+        penalities = X * no_scoring_timer
+
         pass
 
     def reset(self):
-        pass
-
+        self.tetris.start_game()
+        self.pyboy.tick()
 
     def interact():
         pass
 
-    def plot_result():
-        pass
+    def close(self):
+        self.pyboy.stop()
 
 
 
