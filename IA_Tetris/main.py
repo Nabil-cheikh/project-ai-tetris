@@ -3,76 +3,33 @@ from pyboy.core.mb import Motherboard
 from pyboy import PyBoy
 from IA_Tetris.params import *
 from IA_Tetris.Better_Tetris_Wrapper import Tetris
+from IA_Tetris.Agent import TetrisAgent
+from IA_Tetris.Environnement import TetrisEnv
+from IA_Tetris.utils import TetrisInfos
 
-def init_pyboy():
-    pyboy_argv = {
-        'window':pyboy.defaults["window"],
-        'scale':pyboy.defaults["scale"],
-        'symbols':None,
-        'bootrom':None,
-        'sound':False,
-        'sound_emulated':False,
-        'cgb':None,
-        'log_level':pyboy.defaults["log_level"],
-        'color_palette':pyboy.defaults["color_palette"],
-        'cgb_color_palette':pyboy.defaults["cgb_color_palette"]
-        }
+def main():
+    agent = None
+    # agent = TetrisAgent()
+    env = TetrisEnv(ROM_PATH)
 
-    mb = Motherboard(
-            ROM_PATH,
-            pyboy_argv['bootrom'],
-            pyboy_argv["color_palette"],
-            pyboy_argv["cgb_color_palette"],
-            pyboy_argv['sound'],
-            pyboy_argv['sound_emulated'],
-            pyboy_argv['cgb'],
-            randomize=False,
-        )
+    env.run_game(NB_EPISODES) # déterminer le nombre d'épisodes
 
-    pyboy_env = PyBoy(gamerom=ROM_PATH,
-                      window=pyboy_argv['window'],
-                      scale=pyboy_argv['scale'],
-                      symbols=pyboy_argv['symbols'],
-                      bootrom=pyboy_argv['bootrom'],
-                      sound=pyboy_argv['sound'],
-                      sound_emulated=pyboy_argv['sound_emulated'],
-                      cgb=pyboy_argv['cgb'],
-                      log_level=pyboy_argv['log_level'],
-                      color_palette=pyboy_argv['color_palette'],
-                      cgb_color_palette=pyboy_argv['cgb_color_palette']) # déterminer le type d'affichage
-
-    pyboy_env.set_emulation_speed(0) # déterminer la vitesse
-    #tetris = pyboy_env.game_wrapper
-
-    tetris = Tetris(pyboy_env, mb, pyboy_argv)
-    tetris.game_area_mapping(tetris.mapping_compressed, 0)
-    tetris.start_game(timer_div=None) # passer une seed random
-
-    pyboy_env.tick()
-
-    run_game(pyboy_env, tetris, 5) # déterminer le nombre d'épisodes
-
-def run_game(pyboy_env, tetris, n_episodes = None):
-    if n_episodes == None:
-        ticks_loop(pyboy_env, tetris)
-    else:
-        run_n_episodes(pyboy_env, tetris, n_episodes)
-
-def run_n_episodes(pyboy_env, tetris, n_episodes):
-    for episode in range(n_episodes):
-        ticks_loop(pyboy_env, tetris, )
-
-def ticks_loop(pyboy_env, tetris):
-    while pyboy_env.tick():
-        one_tick(pyboy_env, tetris)
-
-def one_tick(pyboy_env, tetris):
-    # check Game Over
-    # check spawn new tetromino
-    # increment timer
-    # check play or replay
-
-    pass
+def game_over(episode, print_infos, df, play_time, reward, score, lines, nb_tetrominos_used, seed, inputs):
+    # Values we have to saved on a DataFrame
+    print('GAME OVER')
+    minutes = int(play_time // 60)
+    seconds = int(play_time - minutes * 60)
+    milliseconds = int((play_time - minutes * 60 - seconds)*1000)
+    time = '{:02d}:{:02d}.{:03d}'.format(minutes, seconds, milliseconds)
+    if print_infos:
+        print(f"[Episode {episode}] Game Infos:\
+                    \n-Total Rewards:{reward}\
+                    \n-Game Score:{score}\
+                    \n-Lines:{lines}\
+                    \n-Time:{time}\
+                    \n-Tetrominos used:{nb_tetrominos_used}")
+    df = TetrisInfos.update_datas(df, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
+    return df
 
 if __name__ == '__main__':
-    init_pyboy()
+    main()
