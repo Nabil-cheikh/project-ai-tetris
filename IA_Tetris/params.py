@@ -3,6 +3,7 @@ import os
 
 ############ VARIABLES ############
 ROM_PATH = os.environ.get('ROM_PATH')
+CSV_PATH = os.environ.get('CSV_PATH')
 MODEL_TARGET = os.environ.get('MODEL_TARGET')
 
 # GCP Project
@@ -29,3 +30,11 @@ DTYPES = {
     'Seed': 'int',
     'Inputs': 'list'
 }
+
+INPUTS = [
+    'none',
+    'left',
+    'right',
+    'down',
+    'a'
+]
