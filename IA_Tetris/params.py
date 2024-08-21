@@ -17,6 +17,7 @@ BUCKET_NAME = os.environ.get('BUCKET_NAME')
 BQ_REGION = os.environ.get('BQ_REGION')
 BQ_DATASET = os.environ.get('BQ_DATASET')
 
+NB_EPISODES = 5
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']

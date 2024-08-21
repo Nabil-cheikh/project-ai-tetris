@@ -1,12 +1,14 @@
+
+from pyboy import pyboy
+from pyboy.core.mb import Motherboard
 from pyboy import PyBoy
 from pyboy.utils import WindowEvent
 import numpy as np
-import gymnasium as gym
-from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv
 import pandas as pd
 import matplotlib.pyplot as plt
 from IA_Tetris.params import *
+from IA_Tetris.Better_Tetris_Wrapper import Tetris
+from IA_Tetris.utils import TetrisInfos
 
 #path pour démarrer le jeu
 rom_path = ROM_PATH
@@ -14,15 +16,78 @@ rom_path = ROM_PATH
 class TetrisEnv() :
 
     def __init__(self, rom_path):
-        self.pyboy = PyBoy(rom_path)
-        self.tetris = self.pyboy.game_wrapper
+        self.pyboy_argv = {
+            'window':pyboy.defaults["window"],
+            'scale':pyboy.defaults["scale"],
+            'symbols':None,
+            'bootrom':None,
+            'sound':False,
+            'sound_emulated':False,
+            'cgb':None,
+            'log_level':pyboy.defaults["log_level"],
+            'color_palette':pyboy.defaults["color_palette"],
+            'cgb_color_palette':pyboy.defaults["cgb_color_palette"]
+        }
+
+        self.mb = Motherboard(
+                ROM_PATH,
+                self.pyboy_argv['bootrom'],
+                self.pyboy_argv["color_palette"],
+                self.pyboy_argv["cgb_color_palette"],
+                self.pyboy_argv['sound'],
+                self.pyboy_argv['sound_emulated'],
+                self.pyboy_argv['cgb'],
+                randomize=False,
+            )
+
+        self.pyboy_env = PyBoy(gamerom=ROM_PATH,
+                        window=self.pyboy_argv['window'],
+                        scale=self.pyboy_argv['scale'],
+                        symbols=self.pyboy_argv['symbols'],
+                        bootrom=self.pyboy_argv['bootrom'],
+                        sound=self.pyboy_argv['sound'],
+                        sound_emulated=self.pyboy_argv['sound_emulated'],
+                        cgb=self.pyboy_argv['cgb'],
+                        log_level=self.pyboy_argv['log_level'],
+                        color_palette=self.pyboy_argv['color_palette'],
+                        cgb_color_palette=self.pyboy_argv['cgb_color_palette']) # déterminer le type d'affichage
+
+        self.pyboy_env.set_emulation_speed(0) # déterminer la vitesse
+
+        self.tetris = Tetris(self.pyboy_env, self.mb, self.pyboy_argv)
         self.tetris.game_area_mapping(self.tetris.mapping_compressed, 0)
-        self.tetris.start_game()
-        self.pyboy.tick()
+
+
+    def run_game(self, n_episodes = None):
+        self.tetris.start_game(timer_div=None)
+        self.pyboy_env.tick()
         self.frame_count = 0
 
+        if n_episodes == None:
+            self.ticks_loop()
+        else:
+            self.run_n_episodes(n_episodes)
+
+    def run_n_episodes(self, n_episodes):
+        for episode in range(n_episodes):
+            self.ticks_loop()
+
+    def ticks_loop(self):
+        while self.pyboy_env.tick():
+            self.one_tick()
+
+    def one_tick(self):
+        # check Game Over
+        if self.game_over():
+            TetrisInfos.update_datas()
+        # check spawn new tetromino
+        # increment timer
+        # check play or replay
+
+        pass
+
     def state(self):
-        return self.tetris.game_area()
+        return self.tetris.game_area_clean()
 
     def game_over(self):
         self.tetris.game_over()
@@ -46,7 +111,7 @@ class TetrisEnv() :
         return rewards
 
     def bumpiness_rewards(self):
-        state = self.tetris.game_area()
+        state = self.tetris.game_area_clean()
         column_heigh = []
         for i in range(state.shape[1]):
             column = state[:, i]
@@ -102,10 +167,10 @@ class TetrisEnv() :
         self.tetris.reset_game()
 
     def close(self):
-        self.pyboy.stop()
+        self.pyboy_env.stop()
 
 
-# dans le main
-env = TetrisEnv(rom_path)
-while env.pyboy.tick():
-    pass
+if __name__ == '__main__':
+    env = TetrisEnv(rom_path)
+    while env.tetris.tick():
+        pass
