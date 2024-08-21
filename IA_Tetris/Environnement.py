@@ -4,7 +4,7 @@ import numpy as np
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
-import pandas as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from IA_Tetris.params import *
 
@@ -57,16 +57,16 @@ class TetrisEnv() :
         for i in range(column_heigh) :
             subtraction_result = column_heigh[i + 1] - column_heigh[i]
             rewards += subtraction_result
-        return rewards
+        return rewards*(-1)
 
     def heigh_rewards(self):
-        rewards += 0
+        rewards = 0
         for i in self.tetris.game_area():
             if i == 47:
-                rewards = 1
+                rewards += 1
         for i in self.tetris.game_area():
             if i != 47:
-                rewards = -10
+                rewards += -10
         return rewards
 
     def score_rewards(self):
