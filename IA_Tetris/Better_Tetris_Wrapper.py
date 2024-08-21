@@ -5,7 +5,7 @@ import time
 class Tetris(game_wrapper_tetris.GameWrapperTetris):
 
     def __init__(self, *args, **kwargs):
-        super.__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.time = time.time()
         self.current_tetromino = self.next_tetromino()
 
@@ -16,7 +16,7 @@ class Tetris(game_wrapper_tetris.GameWrapperTetris):
         pass
 
     def reset_game(self, timer_div=None):
-        super.reset_game(timer_div)
+        super().reset_game(timer_div)
         pass
 
     def tick(self, count=1, render=True):
