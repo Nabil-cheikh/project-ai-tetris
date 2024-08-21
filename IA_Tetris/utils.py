@@ -1,3 +1,6 @@
+from IA_Tetris.params import *
+import pandas as pd
+
 class PrintColor:
     def get_color_id(color, is_fg):
         # ANSI color codes : https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -137,7 +140,14 @@ class TetrisInfos:
             return 8
         return -1
 
-    def update_datas(df, time, score, lines, rewards, nb_blocs):
-        new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs}
+    def get_input_id(input):
+        return INPUTS.index(input)
+
+    def get_input(id):
+        return INPUTS[id]
+
+    def update_datas(df, time, score, lines, rewards, nb_blocs, seed, inputs, path=CSV_PATH):
+        new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
         df = df._append(new_datas, ignore_index=True)
+        df.to_csv(path)
         return df

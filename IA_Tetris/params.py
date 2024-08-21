@@ -3,6 +3,7 @@ import os
 
 ############ VARIABLES ############
 ROM_PATH = os.environ.get('ROM_PATH')
+CSV_PATH = os.environ.get('CSV_PATH')
 MODEL_TARGET = os.environ.get('MODEL_TARGET')
 
 # GCP Project
@@ -18,12 +19,22 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 
 ############ CONSTANTS ############
-COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed']
+COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
 
 DTYPES = {
     'Time': 'timestamp',
     'Score': 'int',
     'Lines': 'int',
     'Rewards': 'int',
-    'NbBlocUsed': 'int'
+    'NbBlocUsed': 'int',
+    'Seed': 'int',
+    'Inputs': 'list'
 }
+
+INPUTS = [
+    'none',
+    'left',
+    'right',
+    'down',
+    'a'
+]
