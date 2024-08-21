@@ -166,3 +166,4 @@ raw_data/
 data/
 .env
 .envrc
+notebooks/
