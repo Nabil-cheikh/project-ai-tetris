@@ -4,7 +4,7 @@ import numpy as np
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
-import pandas as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from IA_Tetris.params import *
 
@@ -22,8 +22,7 @@ class TetrisEnv() :
         self.frame_count = 0
 
     def state(self):
-        game_area = self.tetris.game_area()
-        return game_area
+        return self.tetris.game_area()
 
     def game_over(self):
         self.tetris.game_over()
@@ -46,17 +45,28 @@ class TetrisEnv() :
         rewards = self.tetris.lines*200
         return rewards
 
-    def bumpiness_rewards():
-        pass
+    def bumpiness_rewards(self):
+        state = self.tetris.game_area()
+        column_heigh = []
+        for i in range(state.shape[1]):
+            column = state[:, i]
+            bloc_column = [x for x in column if x != 47]
+            column_heigh.append(len(bloc_column))
+
+        rewards = 0
+        for i in range(column_heigh) :
+            subtraction_result = column_heigh[i + 1] - column_heigh[i]
+            rewards += subtraction_result
+        return rewards*(-1)
 
     def heigh_rewards(self):
-        rewards += 0
+        rewards = 0
         for i in self.tetris.game_area():
             if i == 47:
-                rewards = 1
+                rewards += 1
         for i in self.tetris.game_area():
             if i != 47:
-                rewards = -10
+                rewards += -10
         return rewards
 
     def score_rewards(self):
@@ -96,7 +106,6 @@ class TetrisEnv() :
 
 
 # dans le main
-
 env = TetrisEnv(rom_path)
 while env.pyboy.tick():
     pass
