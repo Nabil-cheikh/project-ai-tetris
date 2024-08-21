@@ -12,6 +12,7 @@ from IA_Tetris.params import *
 rom_path = ROM_PATH
 
 class TetrisEnv() :
+    #envrionnement
 
     def __init__(self, rom_path):
         self.pyboy = PyBoy(rom_path)
