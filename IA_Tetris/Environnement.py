@@ -56,12 +56,13 @@ class TetrisEnv() :
 
         self.tetris = Tetris(self.pyboy_env, self.mb, self.pyboy_argv)
         self.tetris.game_area_mapping(self.tetris.mapping_compressed, 0)
+        self.frame_count = 0
 
 
     def run_game(self, n_episodes = None):
-        self.tetris.start_game(timer_div=None)
+        self.tetris.start_game(timer_div=SEED)
         self.pyboy_env.tick()
-        self.frame_count = 0
+
 
         if n_episodes == None:
             self.ticks_loop()
@@ -73,18 +74,20 @@ class TetrisEnv() :
             self.ticks_loop()
 
     def ticks_loop(self):
+        """Boucle principale de traitement des ticks"""
         while self.pyboy_env.tick():
-            self.one_tick()
+            # Incrémenter le compteur de frames
+            self.frame_count += 1
 
-    def one_tick(self):
-        # check Game Over
-        if self.game_over():
-            TetrisInfos.update_datas()
-        # check spawn new tetromino
-        # increment timer
-        # check play or replay
+            # Vérifier l'état du jeu (Game Over)
+            if self.game_over():
+                #TetrisInfos.update_datas()
+                self.reset()
+                continue  # Passer au prochain épisode après réinitialisation
 
-        pass
+            # Ajoutez ici la logique d'action de l'agent
+            #action = self.get_agent_action()  # Fonction fictive pour obtenir l'action de l'agent
+            #self.actions(action)
 
     def state(self):
         return self.tetris.game_area_clean()
@@ -105,7 +108,6 @@ class TetrisEnv() :
         elif action == 4:
             self.pyboy.send_input(WindowEvent.PRESS_BUTTON_B)
         self.pyboy.tick()
-        self.frame_count += 1
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200
@@ -154,7 +156,6 @@ class TetrisEnv() :
         return rewards
 
     def frame_rewards(self):
-        self.frame_count = 0
         reward = self.frame_count * -1
         return reward
 
@@ -163,7 +164,7 @@ class TetrisEnv() :
         return self.frame_rewards() + self.hole_rewards() + self.score_rewards() + self.heigh_rewards() + self.bumpiness_rewards() + self.lines_rewards()
 
     def reset(self):
-        self.tetris.reset_game()
+        self.tetris.reset_game(SEED)
 
     def close(self):
         self.pyboy_env.stop()
