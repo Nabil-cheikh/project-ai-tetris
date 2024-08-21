@@ -90,7 +90,8 @@ class TetrisEnv() :
         return self.tetris.game_area_clean()
 
     def game_over(self):
-        self.tetris.game_over()
+
+        return self.tetris.game_over()
 
     def actions(self, action):
         if action == 0:
@@ -119,8 +120,8 @@ class TetrisEnv() :
             column_heigh.append(len(bloc_column))
 
         rewards = 0
-        for i in range(column_heigh) :
-            subtraction_result = column_heigh[i + 1] - column_heigh[i]
+        for i in range(len(column_heigh)) :
+            subtraction_result = np.abs(column_heigh[i + 1] - column_heigh[i])
             rewards += subtraction_result
         return rewards*(-1)
 
@@ -158,10 +159,8 @@ class TetrisEnv() :
         return reward
 
     def get_rewards(self):
-        rewards = self.frame_rewards + self.hole_rewards
-        + self.score_rewards + self.heigh_rewards + self.bumpiness_rewards
-        + self.lines_rewards
-        return rewards
+
+        return self.frame_rewards() + self.hole_rewards() + self.score_rewards() + self.heigh_rewards() + self.bumpiness_rewards() + self.lines_rewards()
 
     def reset(self):
         self.tetris.reset_game()
