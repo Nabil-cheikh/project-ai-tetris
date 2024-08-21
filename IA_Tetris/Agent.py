@@ -1,16 +1,20 @@
 from collections import deque
+from random import random
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, is_eval=False, model_name=""):
+    def __init__(self, is_eval=False, mem_size=10000, model_name=""):
         self.action_size = 5 # NO TOUCH, down, left, right, orientation
         self.memory = deque(maxlen=1000)
         self.inventory = []
         self.model_name = model_name
         self.is_eval = is_eval
+        if not replay_start_size:
+            replay_start_size = mem_size / 2
 
         self.gamma = 0.95
         self.epsilon = 1.0
@@ -40,6 +44,7 @@ class TetrisAgent:
         '''Trains the agent'''
         n = len(self.memory)
 
+        # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:
 
             batch = random.sample(self.memory, batch_size)
