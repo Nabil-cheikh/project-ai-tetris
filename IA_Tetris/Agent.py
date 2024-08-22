@@ -1,7 +1,8 @@
 from collections import deque
 from random import random
+from IA_Tetris.Environnement import *
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 
@@ -25,11 +26,12 @@ class TetrisAgent:
     def _build_model(self):
         '''Builds a Keras deep neural network model'''
         model = Sequential()
-        model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
+        model.add(Input(shape=(self.state_size,)))
+        model.add(Dense(units=64, activation="relu"))  # Use input_shape here
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam(lr=0.001))
+        model.compile(loss="mse", optimizer=Adam(learning_rate=0.001))  # Use learning_rate instead of lr
 
         return model
 
@@ -41,6 +43,9 @@ class TetrisAgent:
     def predict_value(self, state):
         '''Predicts the score for a certain state'''
         return self.model.predict(state, verbose=0)[0]
+
+    def state_size():
+        return env.state.shape
 
 
     def best_state(self, states):

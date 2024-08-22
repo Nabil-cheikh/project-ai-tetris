@@ -15,8 +15,6 @@ from IA_Tetris.utils import TetrisInfos
 rom_path = ROM_PATH
 
 class TetrisEnv() :
-    #envrionnement
-
     df = None
 
     def __init__(self, rom_path):
@@ -117,8 +115,14 @@ class TetrisEnv() :
             #action = self.get_agent_action()  # Fonction fictive pour obtenir l'action de l'agent
             #self.actions(action)
 
-    def state(self):
+    def game_area_only(self):
         return self.tetris.game_area_only()
+
+    def game_area(self):
+        return self.tetris.game_area()
+
+    def state(self):
+        return self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards, self.actions(), self.game_area()
 
     def game_over(self):
         return self.tetris.game_over()
@@ -132,7 +136,6 @@ class TetrisEnv() :
             self.pyboy_env.send_input(WindowEvent.PRESS_ARROW_DOWN)
         elif action == 3:
             self.pyboy_env.send_input(WindowEvent.PRESS_BUTTON_A)
-        #self.tetris.tick() # pourquoi tick ici ?
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200
@@ -140,81 +143,62 @@ class TetrisEnv() :
 
     def bumpiness_rewards(self):
         state = self.tetris.game_area_only()
-        column_heigh = []
+        column_heights = []
+
+        # Calcul de la hauteur de chaque colonne
         for i in range(state.shape[1]):
             column = state[:, i]
-            bloc_column = [x for x in column if x != 47]
-            column_heigh.append(len(bloc_column))
+            bloc_column = [x for x in column if x != 47]  # Filtre les cellules non vides
+            column_heights.append(len(bloc_column))
 
         rewards = 0
-        for i in range(len(column_heigh)) :
-            subtraction_result = np.abs(column_heigh[i + 1] - column_heigh[i])
+
+        # Calcul de la différence absolue entre les hauteurs des colonnes adjacentes
+        for i in range(len(column_heights) - 1):  # On s'arrête avant la dernière colonne
+            subtraction_result = abs(column_heights[i + 1] - column_heights[i])
             rewards += subtraction_result
-        return rewards*(-1)
+
+        return rewards * (-1)
+
+
 
     def heigh_rewards(self):
         rewards = 0
-        for i in self.tetris.game_area():
-            if i == 47:
-                rewards += 1
-        for i in self.tetris.game_area():
-            if i != 47:
-                rewards += -10
+
+        # Parcours de chaque cellule dans la zone de jeu
+        for row in self.tetris.game_area():
+            for cell in row:
+                if cell == 47:  # Si la cellule est un trou
+                    rewards += 1
+                else:  # Si la cellule n'est pas un trou
+                    rewards -= 10
         return rewards
+
 
     def score_rewards(self):
         rewards = self.tetris.score*1
         return rewards
 
     def hole_rewards(self):
-        rows, cols = self.tetris.game_area()
+        rows, cols = self.tetris.game_area().shape
         hole = 0
-        for i in range(0, rows):
-            for j in range(0, cols):
-                if self.tetris.game_area()[i, j] == 47:
-                    hole_middle = [self.tetris.game_area()[i, j+1]]
 
-                    if all(h != 47 for h in hole_middle):
+        for i in range(rows):
+            for j in range(cols):
+                if self.tetris.game_area()[i, j] == 47:
+                    if i < rows - 1 and self.tetris.game_area()[i + 1, j] != 47:
                         hole += 1
 
-        rewards = hole*(-1000)
+        rewards = hole * (-1000)
         return rewards
+
 
     def frame_rewards(self):
         reward = self.frame_count * -1
         return reward
 
     def get_rewards(self):
-        # TODO: Problème sur le hole_rewards()
-        #     167 def hole_rewards(self):
-        # --> 168     rows, cols = self.tetris.game_area()
-        #     169     hole = 0
-        #     170     for i in range(0, rows):
-
-        # ValueError: too many values to unpack (expected 2)
-
-        # TODO: Problème avec self.heigh_rewards()
-        #     154 rewards = 0
-        #     155 for i in self.tetris.game_area():
-        # --> 156     if i == 47:
-        #     157         rewards += 1
-        #     158 for i in self.tetris.game_area():
-
-        # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
-
-        # TODO: Problème avec self.bumpiness_rewards()
-        #     147 rewards = 0
-        #     148 for i in range(len(column_heigh)) :
-        # --> 149     subtraction_result = np.abs(column_heigh[i + 1] - column_heigh[i])
-        #     150     rewards += subtraction_result
-        #     151 return rewards*(-1)
-
-        # IndexError: list index out of range
-
-        return self.frame_rewards() + self.score_rewards() + self.lines_rewards()
-        #  + self.hole_rewards()
-        #  + self.heigh_rewards()
-        #  + self.bumpiness_rewards()
+        return self.frame_rewards() + self.score_rewards() + self.lines_rewards()+ self.hole_rewards()  + self.heigh_rewards()+ self.bumpiness_rewards()
 
     def reset(self):
         self.tetris.reset_game(self.seed)
