@@ -1,5 +1,5 @@
 from collections import deque
-from random import random
+import random
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
@@ -9,7 +9,7 @@ class TetrisAgent:
 
     def __init__(self, mem_size=10000, epsilon=1.0, epsilon_min=0.01,
                  epsilon_decay=0.001, discount=0.95, replay_start_size=None):
-        self.action_size = 5 # NO TOUCH, down, left, right, orientation
+        self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
         if not replay_start_size:
             replay_start_size = mem_size / 2
@@ -18,6 +18,7 @@ class TetrisAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.discount = discount
+        self.state_size = 6
 
         self.model = self._build_model()
 
@@ -29,7 +30,7 @@ class TetrisAgent:
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam(lr=0.001))
+        model.compile(loss="mse", optimizer=Adam(learning_rate=0.001))
 
         return model
 
@@ -49,15 +50,19 @@ class TetrisAgent:
         best_state = None
 
         if random.random() <= self.epsilon:
-            return random.choice(list(states))
+            return random.choice([0, 1, 2, 3])
 
         else:
-            for state in states:
-                value = self.predict_value(np.reshape(state, [1, self.state_size]))
+            try:
+                print("test")
+                for state in states:
+                    value = self.predict_value(np.reshape(state, [1, self.state_size]))
 
-                if not max_value or value > max_value:
-                    max_value = value
-                    best_state = state
+                    if not max_value or value > max_value:
+                        max_value = value
+                        best_state = state
+            except:
+                return random.choice([0, 1, 2, 3])
 
         return best_state
 
