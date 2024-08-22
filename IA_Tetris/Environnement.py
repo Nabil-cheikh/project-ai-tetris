@@ -15,6 +15,7 @@ from IA_Tetris.utils import TetrisInfos
 rom_path = ROM_PATH
 
 class TetrisEnv() :
+    #envrionnement
 
     df = None
 
