@@ -5,7 +5,7 @@ import os
 ROM_PATH = os.environ.get('ROM_PATH')
 CSV_PATH = os.environ.get('CSV_PATH')
 MODEL_TARGET = os.environ.get('MODEL_TARGET')
-SEED=1
+
 # GCP Project
 GCP_PROJECT = os.environ.get('GCP_PROJECT')
 GCP_REGION = os.environ.get('GCP_REGION')
@@ -17,7 +17,10 @@ BUCKET_NAME = os.environ.get('BUCKET_NAME')
 BQ_REGION = os.environ.get('BQ_REGION')
 BQ_DATASET = os.environ.get('BQ_DATASET')
 
+SEED = 1
 NB_EPISODES = 5
+GB_NORMAL_FPS = 59.73
+AUTO_PLAY_RANDOM = True
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']

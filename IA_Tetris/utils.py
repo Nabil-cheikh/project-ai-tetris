@@ -146,8 +146,31 @@ class TetrisInfos:
     def get_input(id):
         return INPUTS[id]
 
-    def update_datas(df, time, score, lines, rewards, nb_blocs, seed, inputs, path=CSV_PATH):
+    def game_over(print_infos, data, play_time, reward, score, lines, nb_tetrominos_used, seed, inputs):
+        # Values we have to saved on a DataFrame
+        minutes = int(play_time // 60)
+        seconds = int(play_time - minutes * 60)
+        milliseconds = int((play_time - minutes * 60 - seconds)*1000)
+        time = '{:02d}:{:02d}.{:03d}'.format(minutes, seconds, milliseconds)
+        if print_infos:
+            print(PrintColor.cstr_with_arg('GAME OVER', 'pure red', True))
+            print(f"Game Infos:\
+                    \n-Total Rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
+                    \n-Game Score:{PrintColor.cstr_with_arg(score, 'pure green' if score > 0 else 'pure red', True)}\
+                    \n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines >= 100 else 'pure red', True)}\
+                    \n-Time:{time}\
+                    \n-Tetrominos used:{nb_tetrominos_used}")
+        data = TetrisInfos.update_datas(data, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
+        return data
+
+    def update_datas(data, time, score, lines, rewards, nb_blocs, seed, inputs, path=CSV_PATH):
         new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
-        df = df._append(new_datas, ignore_index=True)
-        df.to_csv(path)
-        return df
+        data = data._append(new_datas, ignore_index=True)
+        data.to_csv(path)
+        return data
+
+    def get_dataframe(reset_dataframe):
+        data = pd.DataFrame(columns=COLUMN_NAMES)
+        if not reset_dataframe:
+            data = pd.read_csv(CSV_PATH)
+        return data
