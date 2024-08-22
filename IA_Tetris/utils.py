@@ -99,6 +99,7 @@ class TetrisInfos:
         return colored_game_area
 
     def get_tetromino_form(tetromino_id):
+        '''0=empty, 1=J, 2=Z, 3=O, 4=L, 5=T, 6=S, 7=I, 8=Game Over Wall'''
         if tetromino_id == 0:
             return 'empty'
         if tetromino_id == 1:
@@ -120,6 +121,7 @@ class TetrisInfos:
         return None
 
     def get_tetromino_id(tetromino_form):
+        '''empty=0, J=1, Z=2, O=3, L=4, T=5, S=6, I=7, Game Over Wall=8'''
         if tetromino_form == 'empty':
             return 0
         if tetromino_form == 'J':

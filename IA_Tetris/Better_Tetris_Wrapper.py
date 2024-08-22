@@ -113,7 +113,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
                     self.set_new_tetromino(True)
                     self.set_current_tetromino(TetrisInfos.get_tetromino_form(t_id))
 
-                    print(TetrisInfos.better_game_area(self.tetris.game_area()))
+                    print(TetrisInfos.better_game_area(self.game_area()))
 
                     if AUTO_PLAY_RANDOM:
                         # Fix to allow spamming down button when a new tetromino spawn
