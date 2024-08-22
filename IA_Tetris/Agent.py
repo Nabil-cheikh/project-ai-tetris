@@ -1,21 +1,23 @@
 from collections import deque
+from random import random
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, is_eval=False, model_name=""):
+    def __init__(self, mem_size=10000, epsilon=1.0, epsilon_min=0.01,
+                 epsilon_decay=0.001, discount=0.95, replay_start_size=None):
         self.action_size = 5 # NO TOUCH, down, left, right, orientation
-        self.memory = deque(maxlen=1000)
-        self.inventory = []
-        self.model_name = model_name
-        self.is_eval = is_eval
-
-        self.gamma = 0.95
-        self.epsilon = 1.0
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.995
+        self.memory = deque(maxlen=mem_size)
+        if not replay_start_size:
+            replay_start_size = mem_size / 2
+        self.replay_start_size = replay_start_size
+        self.epsilon = epsilon
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
+        self.discount = discount
 
         self.model = self._build_model()
 
@@ -26,8 +28,8 @@ class TetrisAgent:
         model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
-        model.add(Dense(self.action_size, activation="softmax"))
-        model.compile(loss="categorical_crossentropy", optimizer=Adam(lr=0.001))
+        model.add(Dense(self.action_size, activation="linear"))
+        model.compile(loss="mse", optimizer=Adam(lr=0.001))
 
         return model
 
@@ -36,10 +38,35 @@ class TetrisAgent:
         self.memory.append((current_state, next_state, action, reward))
 
 
+    def predict_value(self, state):
+        '''Predicts the score for a certain state'''
+        return self.model.predict(state, verbose=0)[0]
+
+
+    def best_state(self, states):
+        '''Returns the best state for a given collection of states'''
+        max_value = None
+        best_state = None
+
+        if random.random() <= self.epsilon:
+            return random.choice(list(states))
+
+        else:
+            for state in states:
+                value = self.predict_value(np.reshape(state, [1, self.state_size]))
+
+                if not max_value or value > max_value:
+                    max_value = value
+                    best_state = state
+
+        return best_state
+
+
     def train(self, batch_size=32, epochs=3):
         '''Trains the agent'''
         n = len(self.memory)
 
+        # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:
 
             batch = random.sample(self.memory, batch_size)
