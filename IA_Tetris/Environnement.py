@@ -92,26 +92,29 @@ class TetrisEnv() :
     def state(self):
         return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards()]
 
-    # def get_next_states(self):
-    #     states = {}
-    #     piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
-    #     rotations = []
+    def get_next_states(self):
+        states = {}
+        piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
+        rotations = []
 
-    #     if piece_id == 3:
-    #         rotations = [0]
-    #     elif piece_id == 2 or piece_id == 6 or piece_id == 7:
-    #         rotations = [0, 90]
-    #     else:
-    #         rotations = [0, 90, 180, 270]
+        if piece_id == 3:
+            rotations = [0]
+        elif piece_id == 2 or piece_id == 6 or piece_id == 7:
+            rotations = [0, 90]
+        else:
+            rotations = [0, 90, 180, 270]
 
-    #     for rotation in rotations:
-    #         piece =
-    #         min_x =
-    #         max_x =
-    #         for x in range(-min_x, self.game_area().shape[0] - max_x):
-    #             states[x, rotation] = self.state()
+        for rotation in rotations:
+            piece = TetrisInfos.TETROMINOS[piece_id][rotation]
+            min_x = min(p[0] for p in piece)
+            max_x = max(p[0] for p in piece)
 
-    #     return states
+            # for all positions in the width
+            for x in range(-min_x, self.game_area().shape[0] - max_x):
+                pos = [x, 0]
+                states[(x, rotation)] = self.state()
+
+        return states
 
     def game_over(self):
         return self.tetris.game_over()
@@ -172,12 +175,12 @@ class TetrisEnv() :
         rewards = hole * (-1000)
         return rewards
 
-    def frame_rewards(self):
-        reward = self.frame_count * -1
-        return reward
+    # def frame_rewards(self):
+    #     reward = self.frame_count * -1
+    #     return reward
 
     def get_rewards(self):
-        return self.frame_rewards() + self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
         self.tetris.reset_game(self.seed)
