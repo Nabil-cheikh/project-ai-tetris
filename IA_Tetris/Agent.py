@@ -69,13 +69,18 @@ class TetrisAgent:
     def train(self, batch_size=32, epochs=3):
         '''Trains the agent'''
         n = len(self.memory)
+        print("taille de la mémoire", n)
 
         # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:
+            print("train")
 
             batch = random.sample(self.memory, batch_size)
 
             # Get the expected score for the next states, in batch (better performance)
+            print(batch[0])
+            print("batch shape : ")
+            print(batch[0].size)
             next_states = np.array([x[1] for x in batch])
             next_qs = [x[0] for x in self.model.predict(next_states)]
 
