@@ -84,6 +84,54 @@ class PrintColor:
         return PrintColor.cstr_with_arg(s=s, fg_color='black', bold=False)
 
 class TetrisInfos:
+
+    # 1=J, 2=Z, 3=O, 4=L, 5=T, 6=S, 7=I
+
+    TETROMINOS = {
+        1: { # J
+            0: [(1,0), (1,1), (1,2), (0,2)],
+            90: [(0,1), (1,1), (2,1), (2,2)],
+            180: [(1,2), (1,1), (1,0), (2,0)],
+            270: [(2,1), (1,1), (0,1), (0,0)],
+        },
+        2: { # Z
+            0: [(0,0), (1,0), (1,1), (2,1)],
+            90: [(0,2), (0,1), (1,1), (1,0)],
+            180: [(2,1), (1,1), (1,0), (0,0)],
+            270: [(1,0), (1,1), (0,1), (0,2)],
+        },
+        3: { # O
+            0: [(1,0), (2,0), (1,1), (2,1)],
+            90: [(1,0), (2,0), (1,1), (2,1)],
+            180: [(1,0), (2,0), (1,1), (2,1)],
+            270: [(1,0), (2,0), (1,1), (2,1)],
+        },
+        4: { # L
+            0: [(1,0), (1,1), (1,2), (2,2)],
+            90: [(0,1), (1,1), (2,1), (2,0)],
+            180: [(1,2), (1,1), (1,0), (0,0)],
+            270: [(2,1), (1,1), (0,1), (0,2)],
+        },
+        5: { # T
+            0: [(1,0), (0,1), (1,1), (2,1)],
+            90: [(0,1), (1,2), (1,1), (1,0)],
+            180: [(1,2), (2,1), (1,1), (0,1)],
+            270: [(2,1), (1,0), (1,1), (1,2)],
+        },
+        6: { # S
+            0: [(2,0), (1,0), (1,1), (0,1)],
+            90: [(0,0), (0,1), (1,1), (1,2)],
+            180: [(0,1), (1,1), (1,0), (2,0)],
+            270: [(1,2), (1,1), (0,1), (0,0)],
+        },
+        7: { # I
+            0: [(0,0), (1,0), (2,0), (3,0)],
+            90: [(1,0), (1,1), (1,2), (1,3)],
+            180: [(3,0), (2,0), (1,0), (0,0)],
+            270: [(1,3), (1,2), (1,1), (1,0)],
+        }
+    }
+
     def better_game_area(game_area, with_indexes=True):
         colored_game_area = ''
         if with_indexes:
@@ -97,6 +145,24 @@ class TetrisInfos:
             colored_game_area += '\n'
 
         return colored_game_area
+
+    def print_tetromino(tetromino):
+        s = ''
+        tetromino_id = TetrisInfos.get_tetromino_id(tetromino)
+        tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][0]
+        if tetromino_id == 1:
+            tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][270]
+        elif tetromino_id == 4:
+            tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][90]
+        for y in range(2):
+            for x in range(4):
+                if (x, y) in tetromino_pts:
+                    s += PrintColor.cstr(f' {tetromino_id} ')
+                else:
+                    s += '   '
+                if x == 3 and y == 0:
+                    s +='\n'
+        return s
 
     def get_tetromino_form(tetromino_id):
         '''0=empty, 1=J, 2=Z, 3=O, 4=L, 5=T, 6=S, 7=I, 8=Game Over Wall'''
@@ -148,13 +214,13 @@ class TetrisInfos:
     def get_input(id):
         return INPUTS[id]
 
-    def game_over(print_infos, data, play_time, reward, score, lines, nb_tetrominos_used, seed, inputs):
+    def game_over(data, play_time, reward, score, lines, nb_tetrominos_used, seed, inputs):
         # Values we have to saved on a DataFrame
         minutes = int(play_time // 60)
         seconds = int(play_time - minutes * 60)
         milliseconds = int((play_time - minutes * 60 - seconds)*1000)
         time = '{:02d}:{:02d}.{:03d}'.format(minutes, seconds, milliseconds)
-        if print_infos:
+        if PRINT_GAME_OVER_INFOS:
             print(PrintColor.cstr_with_arg('GAME OVER', 'pure red', True))
             print(f"Game Infos:\
                     \n-Total Rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
@@ -162,17 +228,18 @@ class TetrisInfos:
                     \n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines >= 100 else 'pure red', True)}\
                     \n-Time:{time}\
                     \n-Tetrominos used:{nb_tetrominos_used}")
-        data = TetrisInfos.update_datas(data, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
+        data = Datas.update_datas(data, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
         return data
 
+class Datas:
     def update_datas(data, time, score, lines, rewards, nb_blocs, seed, inputs, path=CSV_PATH):
         new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
         data = data._append(new_datas, ignore_index=True)
         data.to_csv(path)
         return data
 
-    def get_dataframe(reset_dataframe):
-        data = pd.DataFrame(columns=COLUMN_NAMES)
-        if not reset_dataframe:
-            data = pd.read_csv(CSV_PATH)
-        return data
+    def get_dataframe():
+        if DATAS_STEP == 'Prod':
+            return pd.read_csv(CSV_PATH)
+        else:
+            return pd.DataFrame(columns=COLUMN_NAMES)

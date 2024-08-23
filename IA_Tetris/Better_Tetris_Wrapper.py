@@ -1,6 +1,3 @@
-from pyboy.plugins import game_wrapper_tetris
-import pyboy
-from pyboy.pyboy import PyBoy
 from IA_Tetris.params import *
 from IA_Tetris.utils import TetrisInfos
 import numpy as np
@@ -8,15 +5,17 @@ import time
 
 class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
 
-    def __init__(self, pyboy):
+    def __init__(self, pyboy, env):
         self.pyboy = pyboy
         self.tetris = self.pyboy.game_wrapper
+        self.env = env
         self.play_time = 0
         self.delta_time = 0
         self.time_scale = 1
         self.spawner_area = self.game_area()[1:3,3:7] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
         self._last_spawner_area = np.zeros((2, 4), dtype='int8')
         self._current_tetromino = self.next_tetromino()
+        self._last_next_tetromino = self.next_tetromino()
         self._game_area_only = self.game_area()
         self._last_game_area = np.zeros(self.game_area().shape, dtype='int8')
         self.total_tetromino_used = 0
@@ -53,15 +52,17 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         return self._game_area_only
 
     def game_over(self):
-        return self.tetris.game_over()
+        # Un poil plus rapide que le tetris.game_over() de base, qui attend que tout l'écran soit recouvert de "8"
+        return 8 in self.game_area()
+        # return self.tetris.game_over()
 
     def reset_game(self, timer_div=None):
         self.tetris.reset_game(timer_div)
         self.play_time = 0
         self.delta_time = 0
         self.time_scale = 1
-        self.spawner_area = self.game_area()[1:3,3:7] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
-        self._last_spawner_area = np.zeros((2, 4), dtype='int8')
+        self.spawner_area = self.game_area()[0:4,0:10] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
+        self._last_spawner_area = np.zeros((4, 10), dtype='int8')
         self._current_tetromino = self.next_tetromino()
         self._game_area_only = self.game_area()
         self._last_game_area = np.zeros(self.game_area().shape, dtype='int8')
@@ -83,7 +84,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
 
     def tick(self, count=1, render=True) -> bool:
         tick = self.pyboy.tick(count, render)
-        # TODO: Problème, il est perdu pour savoir c'est quel "tick" de quelle classe "pyboy".......
+        self.env.frame_increment()
 
         # Get values
         self.score = self.tetris.score
@@ -96,33 +97,34 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.time_scale = self.fps / GB_NORMAL_FPS
         self.play_time += self.delta_time * self.time_scale
 
-        self.spawner_area = self.game_area()[1:3,3:7]
+        self.spawner_area = self.game_area()[0:4,0:10]
         self.set_new_tetromino(False)
 
         # Check new tetromino
-        if not np.array_equal(self._last_spawner_area, self.spawner_area):
-            unique = np.unique(self._last_spawner_area, return_counts=True)
-            count_last = {value:count for value, count in zip(unique[0], unique[1])}
+        unique_last = np.unique(self._last_game_area, return_counts=True)
+        count_unique_last = {value:count for value, count in zip(unique_last[0], unique_last[1])}
 
-            unique = np.unique(self.spawner_area, return_counts=True)
-            count_curr = {value:count for value, count in zip(unique[0], unique[1])}
+        unique = np.unique(self.game_area(), return_counts=True)
+        count_unique = {value:count for value, count in zip(unique[0], unique[1])}
+        if count_unique[0] < count_unique_last[0]:
+            self.set_game_area_only()
+            self.set_new_tetromino(True)
+            self.set_current_tetromino(self._last_next_tetromino)
 
-            for t_id in range(1, 8):
-                if count_curr.get(t_id, 0) - count_last.get(t_id, 0) == 4:
-                    self.set_game_area_only()
-                    self.set_new_tetromino(True)
-                    self.set_current_tetromino(TetrisInfos.get_tetromino_form(t_id))
+            if PRINT_GAME_AREAS:
+                print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(self.current_tetromino())}')
+                print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(self.next_tetromino())}')
+                print(TetrisInfos.better_game_area(self.game_area_only()))
 
-                    print(TetrisInfos.better_game_area(self.game_area()))
-
-                    if AUTO_PLAY_RANDOM:
-                        # Fix to allow spamming down button when a new tetromino spawn
-                        self.pyboy.button_release('down')
-                    break
+            if PLAY_MODE == 'Random' or PLAY_MODE == 'Agent':
+                # Fix to allow spamming down button when a new tetromino spawn
+                self.pyboy.button_release('down')
+                    # break
 
         # Update values
         self._last_spawner_area = self.spawner_area
         self._last_game_area = self.game_area()
+        self._last_next_tetromino = self.next_tetromino()
         self._last_time_fps = time.time()
 
         return tick
