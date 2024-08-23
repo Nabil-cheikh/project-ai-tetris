@@ -125,6 +125,10 @@ class TetrisEnv() :
         rewards = self.tetris.lines**2
         return rewards
 
+    def game_over_rewards(self):
+        if self.tetris.game_over():
+            return -1000
+
     def bumpiness_rewards(self):
         state = self.tetris.game_area_only()
         column_heights = []
@@ -167,7 +171,7 @@ class TetrisEnv() :
                     if i < rows - 1 and self.tetris.game_area()[i + 1, j] != 0:
                         hole += 1
 
-        rewards = hole * (-1000)
+        rewards = hole * (-100)
         return rewards
 
     def frame_rewards(self):
