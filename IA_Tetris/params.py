@@ -19,7 +19,7 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 # Game
 SHOW_GAME_WINDOW = True
-GAME_SPEED = 1 # 0 > max speed
+GAME_SPEED = 0 # 0 > max speed
 SEED = 1
 NB_EPISODES = 10
 GB_NORMAL_FPS = 59.73
@@ -38,6 +38,9 @@ DATAS_STEP = 'Test' # 'Test' > replace csv / 'Prod' > add new datas to last csv
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
+
+BOARD_WIDTH = 10
+BOARD_HEIGHT = 18
 
 DTYPES = {
     'Time': 'timestamp',
