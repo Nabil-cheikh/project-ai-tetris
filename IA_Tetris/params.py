@@ -19,22 +19,31 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 # Game
 SHOW_GAME_WINDOW = True
-GAME_SPEED = 0 # 0 > max speed
+GAME_SPEED = 0 # 0 = no speed limit
 SEED = 1
 NB_EPISODES = 10
 GB_NORMAL_FPS = 59.73
-PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
+PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'/'Replay'
 
 # Prints debug infos
-PRINT_GAME_AREAS = True
+PRINT_GAME_AREAS = False
+PRINT_ON_TICK_INFOS = True
+PRINT_ON_NEW_TETROMINO_INFOS = True
 PRINT_GAME_OVER_INFOS = True
+
+# Model
+MODEL_PATH = os.path.join('data', 'models')
+CHECKPOINT_PATH = os.path.join('data', 'checkpoints')
+USE_CHECKPOINT = False # Mettre à True après un crash durant l'entrainement
+CHECKPOINT_FREQUENCY = 10
 
 # Agent
 BATCH_SIZE = 32
 EPOCHS = 3
 
 # Datas
-DATAS_STEP = 'Test' # 'Test' > replace csv / 'Prod' > add new datas to last csv
+DATAS_STEP = 'Prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv
+MODEL_TARGET = 'local' # 'local', 'gcs'
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
