@@ -61,8 +61,8 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.play_time = 0
         self.delta_time = 0
         self.time_scale = 1
-        self.spawner_area = self.game_area()[0:4,0:10] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
-        self._last_spawner_area = np.zeros((4, 10), dtype='int8')
+        self.spawner_area = self.game_area()[1:3,3:7] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
+        self._last_spawner_area = np.zeros((2, 4), dtype='int8')
         self._current_tetromino = self.next_tetromino()
         self._game_area_only = self.game_area()
         self._last_game_area = np.zeros(self.game_area().shape, dtype='int8')
@@ -84,12 +84,12 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
 
     def tick(self, count=1, render=True) -> bool:
         tick = self.pyboy.tick(count, render)
-        self.env.frame_increment()
 
         # Get values
         self.score = self.tetris.score
         self.lines = self.tetris.lines
         self.level = self.tetris.level
+        self.env.frame_increment()
 
         # Time and FPS
         self.delta_time = time.time() - self._last_time_fps
@@ -97,7 +97,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.time_scale = self.fps / GB_NORMAL_FPS
         self.play_time += self.delta_time * self.time_scale
 
-        self.spawner_area = self.game_area()[0:4,0:10]
+        self.spawner_area = self.game_area()[1:3,3:7]
         self.set_new_tetromino(False)
 
         # Check new tetromino
