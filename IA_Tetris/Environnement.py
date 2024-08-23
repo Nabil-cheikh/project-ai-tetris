@@ -72,7 +72,7 @@ class TetrisEnv() :
                 self.reset()
 
                 if NB_EPISODES > 0:
-                    break # Coupe la boucle while pour passer à l'épisode suivant
+                    break
 
     def get_results(self):
         TetrisEnv.df = TetrisInfos.game_over(data=TetrisEnv.df,
@@ -91,7 +91,7 @@ class TetrisEnv() :
         return self.tetris.game_area()
 
     def state(self):
-        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards()]
+        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards(), self.game_over_rewards()]
 
     # def get_next_states(self):
     #     states = {}
@@ -122,12 +122,14 @@ class TetrisEnv() :
         self.pyboy_env.button(TetrisInfos.get_input(action))
 
     def lines_rewards(self):
-        rewards = self.tetris.lines**2
+        rewards = (self.tetris.lines**2)*2000
         return rewards
 
     def game_over_rewards(self):
         if self.tetris.game_over():
             return -1000
+        else:
+            return 0
 
     def bumpiness_rewards(self):
         state = self.tetris.game_area_only()
@@ -146,7 +148,7 @@ class TetrisEnv() :
             subtraction_result = abs(column_heights[i + 1] - column_heights[i])
             rewards += subtraction_result
 
-        return rewards * (-1)
+        return rewards * (-10)
 
     def heigh_rewards(self):
         rewards = 0
@@ -154,11 +156,11 @@ class TetrisEnv() :
         for row in self.tetris.game_area()[:6]:
             for cell in row:
                 if cell != 0:
-                    rewards -= 50
+                    rewards -= 10
         return rewards
 
     def score_rewards(self):
-        rewards = self.tetris.score*1
+        rewards = self.tetris.score*100
         return rewards
 
     def hole_rewards(self):
@@ -171,7 +173,7 @@ class TetrisEnv() :
                     if i < rows - 1 and self.tetris.game_area()[i + 1, j] != 0:
                         hole += 1
 
-        rewards = hole * (-100)
+        rewards = hole * (-10)
         return rewards
 
     def frame_rewards(self):
@@ -179,10 +181,11 @@ class TetrisEnv() :
         return reward
 
     def get_rewards(self):
-        return self.frame_rewards() + self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return self.game_over_rewards() + self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
         self.tetris.reset_game(self.seed)
+        self.pyboy_env.set_emulation_speed(GAME_SPEED)
 
     def close(self):
         self.pyboy_env.stop()

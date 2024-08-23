@@ -19,14 +19,14 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 # Game
 SHOW_GAME_WINDOW = True
-GAME_SPEED = 1 # 0 > max speed
+GAME_SPEED = 0 # 0 > max speed
 SEED = 1
-NB_EPISODES = 10
+NB_EPISODES = 500
 GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
 # Prints debug infos
-PRINT_GAME_AREAS = True
+PRINT_GAME_AREAS = False
 PRINT_GAME_OVER_INFOS = True
 
 # Agent
@@ -49,9 +49,4 @@ DTYPES = {
     'Inputs': 'list'
 }
 
-INPUTS = [
-    'left',
-    'right',
-    'down',
-    'a'
-]
+INPUTS = ['left','right','down','a']
