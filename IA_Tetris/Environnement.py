@@ -122,7 +122,7 @@ class TetrisEnv() :
         self.pyboy_env.button(TetrisInfos.get_input(action))
 
     def lines_rewards(self):
-        rewards = self.tetris.lines*200
+        rewards = self.tetris.lines**2
         return rewards
 
     def bumpiness_rewards(self):
@@ -147,13 +147,10 @@ class TetrisEnv() :
     def heigh_rewards(self):
         rewards = 0
 
-        # Parcours de chaque cellule dans la zone de jeu
-        for row in self.tetris.game_area():
+        for row in self.tetris.game_area()[:6]:
             for cell in row:
-                if cell == 0:  # Si la cellule est un trou
-                    rewards += 1
-                else:  # Si la cellule n'est pas un trou
-                    rewards -= 10
+                if cell != 0:
+                    rewards -= 50
         return rewards
 
     def score_rewards(self):
