@@ -18,7 +18,7 @@ class TetrisAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.discount = discount
-        self.state_size = 6
+        self.state_size = 5
 
         self.model = self._build_model()
 
@@ -54,7 +54,6 @@ class TetrisAgent:
 
         else:
             try:
-                print("test")
                 for state in states:
                     value = self.predict_value(np.reshape(state, [1, self.state_size]))
 
