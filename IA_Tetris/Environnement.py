@@ -122,6 +122,12 @@ class TetrisEnv() :
             rotations = [0, 90]
         else:
             rotations = [0, 90, 180, 270]
+        if piece_id == 3:
+            rotations = [0]
+        elif piece_id == 2 or piece_id == 6 or piece_id == 7:
+            rotations = [0, 90]
+        else:
+            rotations = [0, 90, 180, 270]
 
         for rotation in rotations:
             piece = TetrisInfos.TETROMINOS[piece_id][rotation]
@@ -211,8 +217,12 @@ class TetrisEnv() :
     # def frame_rewards(self):
     #     reward = self.frame_count * -1
     #     return reward
+    # def frame_rewards(self):
+    #     reward = self.frame_count * -1
+    #     return reward
 
     def get_rewards(self):
+        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
         return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
