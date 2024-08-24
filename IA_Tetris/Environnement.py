@@ -92,6 +92,25 @@ class TetrisEnv() :
     def state(self):
         return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards()]
 
+    def _check_collision(self, piece, next_pos):
+        '''Check if there is a collision between the current piece and the board'''
+        for x, y in piece:
+            x += next_pos[0]
+            y += next_pos[1]
+            if x < -3 or x >= 6 \
+                    or y < 0 or y >= BOARD_HEIGHT \
+                    or self.game_area()[x][y] != 0:
+                return True
+        return False
+
+
+    def _add_piece_to_board(self, piece, piece_id, pos):
+        '''Place a piece in the board, returning the resulting board'''
+        board = [x[:] for x in self.game_area()]
+        for x, y in piece:
+            board[y + pos[1]][x + pos[0]] = piece_id
+        return board
+
     def get_next_states(self):
         states = {}
         piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
@@ -108,11 +127,23 @@ class TetrisEnv() :
             piece = TetrisInfos.TETROMINOS[piece_id][rotation]
             min_x = min(p[0] for p in piece)
             max_x = max(p[0] for p in piece)
+            width_tetro = max_x - min_x
 
+            # obtain initial position :
+            initial_pos = [min_x, 0]
             # for all positions in the width
-            for x in range(-min_x, self.game_area().shape[0] - max_x):
-                pos = [x, 0]
-                states[(x, rotation)] = self.state()
+            for x in range(-3, 6 - width_tetro):
+                next_pos = [x, 0]
+
+                # Drop piece
+                while not self._check_collision(piece, next_pos):
+                    next_pos[1] +=1
+                next_pos[1] -= 1
+
+                # Valid move
+                if next_pos[1] >= 0:
+                    new_board = self._add_piece_to_board(piece, piece_id, next_pos)
+                    states[(next_pos, rotation)] = self.state(new_board)
 
         return states
 
@@ -127,13 +158,15 @@ class TetrisEnv() :
         rewards = self.tetris.lines*200
         return rewards
 
-    def bumpiness_rewards(self):
-        state = self.tetris.game_area_only()
+    def bumpiness_rewards(self, board = None):
+        if board == None:
+            board = self.tetris.game_area_only()
+        state_board = board
         column_heights = []
 
         # Calcul de la hauteur de chaque colonne
-        for i in range(state.shape[1]):
-            column = state[:, i]
+        for i in range(state_board.shape[1]):
+            column = state_board[:, i]
             bloc_column = [x for x in column if x != 0]  # Filtre les cellules non vides
             column_heights.append(len(bloc_column))
 
