@@ -89,15 +89,25 @@ class TetrisEnv() :
     def game_area(self):
         return self.tetris.game_area()
 
-    def state(self):
-        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards()]
+    def state(self, board=None):
+        if board == None:
+            board = self.game_area_only()
+        lines, board = self._clear_lines(board)
+        total_bumpiness = self._bumpiness(board)
+        holes = self._number_of_holes(board)
+        sum_height = self._height(board)
+
+        return [lines, total_bumpiness, holes, sum_height]
 
     def _check_collision(self, piece, next_pos):
         '''Check if there is a collision between the current piece and the board'''
+        # TODO : File "/home/nabil/code/project-ai-tetris/IA_Tetris/Environnement.py", line 109, in _check_collision
+        #     or self.game_area_only()[x][y] != 0:
+        # IndexError: index 10 is out of bounds for axis 0 with size 10
         for x, y in piece:
             x += next_pos[0]
             y += next_pos[1]
-            if x < -3 or x >= 6 \
+            if x < 0 or x >= BOARD_WIDTH \
                     or y < 0 or y >= BOARD_HEIGHT \
                     or self.game_area_only()[x][y] != 0:
                 return True
@@ -122,21 +132,11 @@ class TetrisEnv() :
             rotations = [0, 90]
         else:
             rotations = [0, 90, 180, 270]
-        if piece_id == 3:
-            rotations = [0]
-        elif piece_id == 2 or piece_id == 6 or piece_id == 7:
-            rotations = [0, 90]
-        else:
-            rotations = [0, 90, 180, 270]
 
         for rotation in rotations:
             piece = TetrisInfos.TETROMINOS[piece_id][rotation]
-            min_x = min(p[0] for p in piece)
-            max_x = max(p[0] for p in piece)
-            width_tetro = max_x - min_x
+            width_tetro = max(p[0] for p in piece) - min(p[0] for p in piece)
 
-            # obtain initial position :
-            initial_pos = [min_x, 0]
             # for all positions in the width
             for x in range(0, BOARD_WIDTH- width_tetro):
                 next_pos = [x, 0]
@@ -156,17 +156,94 @@ class TetrisEnv() :
     def game_over(self):
         return self.tetris.game_over()
 
-    def actions(self, action):
+    def actions(self, action, current_piece, rotation_done):
         self.inputs.append(action)
-        self.pyboy_env.button(TetrisInfos.get_input(action))
+
+        # récupérer les infos importantes :
+        rotation = action[1]
+        current_x, current_y = current_piece
+        final_x, final_y = action[0]
+        done = False
+        if rotation != 0 and not rotation_done:
+            for _ in range(int(rotation % 90)):
+                self.pyboy_env.button('a')
+
+        if current_x == final_x and current_y == final_y:
+            done = True
+        if not done:
+            if current_x == final_x:
+                self.pyboy_env.button('down')
+                current_y -= 1
+            else:
+                if current_x < final_x:
+                    self.pyboy_env.button('right')
+                    current_x += 1
+                else:
+                    self.pyboy_env.button('left')
+                    current_x -= 1
+
+        return (current_x, current_y), done
+
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200
         return rewards
 
-    def bumpiness_rewards(self, board = None):
-        if board == None:
-            board = self.tetris.game_area_only()
+    def _clear_lines(self, board):
+        lines_to_clear = [index for index, row in enumerate(board) if sum(row) == BOARD_WIDTH]
+        if lines_to_clear:
+            board = [row for index, row in enumerate(board) if index not in lines_to_clear]
+            # Add new lines at the top
+            for _ in lines_to_clear:
+                board.insert(0, [0 for _ in range(BOARD_WIDTH)])
+        return len(lines_to_clear), board
+
+
+    def _bumpiness(self, board):
+        '''Sum of the differences of heights between pair of columns'''
+        total_bumpiness = 0
+        min_ys = []
+
+        for col in zip(*board):
+            i = 0
+            while i < BOARD_HEIGHT and col[i] == 0:
+                i += 1
+            min_ys.append(i)
+
+        for i in range(len(min_ys) - 1):
+            total_bumpiness += abs(min_ys[i] - min_ys[i+1])
+
+        return total_bumpiness
+
+
+    def _number_of_holes(self, board):
+        '''Number of holes in the board (empty square with at least one block above it)'''
+        holes = 0
+
+        for col in zip(*board):
+            i = 0
+            while i < BOARD_HEIGHT and col[i] == 0:
+                i += 1
+            holes += len([x for x in col[i+1:] if x == 0])
+
+        return holes
+
+
+    def _height(self, board):
+        '''Sum and maximum height of the board'''
+        sum_height = 0
+
+        for col in zip(*board):
+            i = 0
+            while i < BOARD_HEIGHT and col[i] == 0:
+                i += 1
+            height = BOARD_HEIGHT - i
+            sum_height += height
+
+        return sum_height
+
+
+    def bumpiness_rewards(self, board):
         state_board = board
         column_heights = []
 

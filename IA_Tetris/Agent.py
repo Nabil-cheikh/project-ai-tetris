@@ -18,7 +18,7 @@ class TetrisAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.discount = discount
-        self.state_size = 5
+        self.state_size = 4
 
         self.model = self._build_model()
 
@@ -50,18 +50,15 @@ class TetrisAgent:
         best_state = None
 
         if random.random() <= self.epsilon:
-            return random.choice([0, 1, 2, 3])
+            return random.choice(list(states))
 
         else:
-            try:
-                for state in states:
-                    value = self.predict_value(np.reshape(state, [1, self.state_size]))
+            for state in states:
+                value = self.predict_value(np.reshape(state, [1, self.state_size]))
 
-                    if not max_value or value > max_value:
-                        max_value = value
-                        best_state = state
-            except:
-                return random.choice([0, 1, 2, 3])
+                if not max_value or value > max_value:
+                    max_value = value
+                    best_state = state
 
         return best_state
 

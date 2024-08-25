@@ -23,7 +23,7 @@ GAME_SPEED = 1 # 0 > max speed
 SEED = 1
 NB_EPISODES = 10
 GB_NORMAL_FPS = 59.73
-PLAY_MODE = 'Human' # 'Random'/'Human'/'Agent'
+PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
 # Prints debug infos
 PRINT_GAME_AREAS = True

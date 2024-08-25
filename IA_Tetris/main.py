@@ -1,6 +1,7 @@
 from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
+from IA_Tetris.utils import TetrisInfos
 
 def main():
     env = TetrisEnv()
@@ -20,23 +21,41 @@ def main():
             #current_state = np.reshape(current_state, [1, state_size])
 
             done = False
+            is_action_finished = True
+            current_piece_id = TetrisInfos.get_tetromino_id(env.tetris.current_tetromino())
+
+
             while not done:
                 env.tetris.tick()
                 # Get the best action to take based on the current state
-                best_action = agent.best_state([current_state])
+                rotation_done=True
+                if is_action_finished:
+                    next_states = env.get_next_states()
+                    best_state = agent.best_state(next_states)
+                    is_action_finished = False
+                    rotation_done=False
+                    for action, state in next_states.items():
+                        if best_state == state:
+                            best_action = action
+                            break
 
+                current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
+                curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
                 # Take the action and observe the new state and reward
-                env.actions(best_action)
-                next_state = env.state()
-                #next_state = np.reshape(next_state, [1, state_size])
-                reward = env.get_rewards()
+                curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
+
+                if is_action_finished:
+                    lines, total_bumpiness, holes, sum_height = best_state
+                    reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
+
+
                 done = env.game_over()
 
                 # Add the experience to the agent's memory
-                agent.add_to_memory(current_state, next_state, best_action, reward)
+                agent.add_to_memory(current_state, best_state, reward, done)
 
                 # Update the current state
-                current_state = next_state
+                current_state = best_state
 
                 # If done, print the score
                 if done:
