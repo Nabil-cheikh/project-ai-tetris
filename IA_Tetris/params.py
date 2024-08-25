@@ -26,12 +26,12 @@ GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
 # Prints debug infos
-PRINT_GAME_AREAS = False
+PRINT_GAME_AREAS = True
 PRINT_GAME_OVER_INFOS = True
 
 # Agent
-BATCH_SIZE = 32
-EPOCHS = 3
+BATCH_SIZE = 64
+EPOCHS = 20
 
 # Datas
 DATAS_STEP = 'Test' # 'Test' > replace csv / 'Prod' > add new datas to last csv
@@ -49,4 +49,9 @@ DTYPES = {
     'Inputs': 'list'
 }
 
-INPUTS = ['left','right','down','a']
+INPUTS = [
+    'left',
+    'right',
+    'down',
+    'a'
+]

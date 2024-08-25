@@ -1,45 +1,42 @@
 
-from pyboy import pyboy
-from pyboy import PyBoy
 import sys
 import numpy as np
 from IA_Tetris.params import *
 from IA_Tetris.Better_Tetris_Wrapper import Tetris
 from IA_Tetris.utils import TetrisInfos
 from IA_Tetris.utils import Datas
+from pyboy import PyBoy
+from pyboy import pyboy
 
-class TetrisEnv() :
-    #envrionnement
-
+class TetrisEnv:
     df = None
 
     def __init__(self):
+        # Remplacement de toutes les références à pyboy.defaults par des valeurs fixes appropriées
         self.pyboy_env = PyBoy(gamerom = ROM_PATH,
                         window = 'SDL2' if SHOW_GAME_WINDOW else 'null',
                         scale = pyboy.defaults["scale"],
                         symbols = None,
                         bootrom = None,
-                        sound = False,
+                        sound = True,
                         sound_emulated = False,
                         cgb = None,
                         log_level = pyboy.defaults["log_level"],
                         color_palette = pyboy.defaults["color_palette"],
-                        cgb_color_palette = pyboy.defaults["cgb_color_palette"]) # déterminer le type d'affichage
+                        cgb_color_palette = pyboy.defaults["cgb_color_palette"])
 
-        self.pyboy_env.set_emulation_speed(GAME_SPEED) # déterminer la vitesse
+        self.pyboy_env.set_emulation_speed(GAME_SPEED)
         self.tetris = Tetris(self.pyboy_env, self)
         self.tetris.game_area_mapping()
         self.frame_count = 0
-        self.seed = np.random.randint(0, sys.maxsize) if SEED == None else SEED # Si SEED == None, on génère une seed random qu'on peut stocker pour la sauvegarder dans le csv
+        self.seed = np.random.randint(0, sys.maxsize) if SEED is None else SEED
         self.inputs = []
 
-        # /!\ ##########################################
-        # METTRE À FALSE QUAND ON COMMENCERA À AVOIR DE VRAIES DONNÉES
-        # Si c'est à True, ça va écraser le csv actuel
         TetrisEnv.df = Datas.get_dataframe()
-        # /!\ ##########################################
 
-    def run_game(self, n_episodes = None):
+    # Le reste du code reste inchangé
+
+    def run_game(self, n_episodes=None):
         self.tetris.start_game(timer_div=self.seed)
         self.tetris.tick()
 
@@ -56,12 +53,10 @@ class TetrisEnv() :
         self.frame_count += 1
 
     def ticks_loop(self):
-        '''Boucle pour passer d'une frame à la suivante'''
         while self.tetris.tick():
             self.frame_increment()
 
             if PLAY_MODE == 'Random':
-                # Si on veut tester avec des inputs randoms
                 rand_input = INPUTS[np.random.randint(0, len(INPUTS))]
                 if rand_input != 'none':
                     self.pyboy_env.button(rand_input)
@@ -72,17 +67,17 @@ class TetrisEnv() :
                 self.reset()
 
                 if NB_EPISODES > 0:
-                    break
+                    break  # Passe à l'épisode suivant
 
     def get_results(self):
         TetrisEnv.df = TetrisInfos.game_over(data=TetrisEnv.df,
-                                                play_time=self.tetris.play_time,
-                                                reward=self.get_rewards(),
-                                                score=self.tetris.score,
-                                                lines=self.tetris.lines,
-                                                nb_tetrominos_used=self.tetris.total_tetromino_used,
-                                                seed=self.seed,
-                                                inputs=self.inputs)
+                                             play_time=self.tetris.play_time,
+                                             reward=self.get_rewards(),
+                                             score=self.tetris.score,
+                                             lines=self.tetris.lines,
+                                             nb_tetrominos_used=self.tetris.total_tetromino_used,
+                                             seed=self.seed,
+                                             inputs=self.inputs)
 
     def game_area_only(self):
         return self.tetris.game_area_only()
@@ -91,28 +86,16 @@ class TetrisEnv() :
         return self.tetris.game_area()
 
     def state(self):
-        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards(), self.game_over_rewards()]
-
-    # def get_next_states(self):
-    #     states = {}
-    #     piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
-    #     rotations = []
-
-    #     if piece_id == 3:
-    #         rotations = [0]
-    #     elif piece_id == 2 or piece_id == 6 or piece_id == 7:
-    #         rotations = [0, 90]
-    #     else:
-    #         rotations = [0, 90, 180, 270]
-
-    #     for rotation in rotations:
-    #         piece =
-    #         min_x =
-    #         max_x =
-    #         for x in range(-min_x, self.game_area().shape[0] - max_x):
-    #             states[x, rotation] = self.state()
-
-    #     return states
+        return (self.bumpiness_penalty(),
+                self.lines_rewards(),
+                self.height_penalty(),
+                self.score_rewards(),
+                self.hole_rewards(),
+                self.game_over_rewards(),
+                self.compactness_reward(),
+                self.edge_alignment_reward(),
+                self.survival_reward(),
+                self.cavity_penalty())
 
     def game_over(self):
         return self.tetris.game_over()
@@ -122,66 +105,83 @@ class TetrisEnv() :
         self.pyboy_env.button(TetrisInfos.get_input(action))
 
     def lines_rewards(self):
-        rewards = (self.tetris.lines**2)*2000
-        return rewards
+        return (self.tetris.lines*30)**2
 
     def game_over_rewards(self):
         if self.tetris.game_over():
             return -1000
-        else:
-            return 0
+        return 0  # Retourne 0 si le jeu n'est pas terminé
 
-    def bumpiness_rewards(self):
+    def bumpiness_penalty(self):
         state = self.tetris.game_area_only()
-        column_heights = []
+        heights = [np.max(np.where(state[:, i] != 0)[0]) if np.any(state[:, i]) else 0 for i in range(state.shape[1])]
+        bumpiness = sum(abs(heights[i] - heights[i + 1]) for i in range(len(heights) - 1))
+        return bumpiness * (-1)  # pénalité par différence de hauteur entre colonnes
 
-        # Calcul de la hauteur de chaque colonne
-        for i in range(state.shape[1]):
-            column = state[:, i]
-            bloc_column = [x for x in column if x != 0]  # Filtre les cellules non vides
-            column_heights.append(len(bloc_column))
+    def compactness_reward(self):
+        state = self.tetris.game_area()
+        filled_cells = np.count_nonzero(state)
+        total_cells = np.prod(state.shape)
+        compactness_ratio = filled_cells / total_cells
+        return compactness_ratio * 100  # récompense basée sur la compacité
 
-        rewards = 0
 
-        # Calcul de la différence absolue entre les hauteurs des colonnes adjacentes
-        for i in range(len(column_heights) - 1):  # On s'arrête avant la dernière colonne
-            subtraction_result = abs(column_heights[i + 1] - column_heights[i])
-            rewards += subtraction_result
 
-        return rewards * (-10)
+    def height_penalty(self):
+        state = self.tetris.game_area()
+        max_height = np.max(np.argmax(state != 0, axis=0))
+        return max_height * (-10)  # pénalité de 10 points par ligne de hauteur
 
-    def heigh_rewards(self):
-        rewards = 0
 
-        for row in self.tetris.game_area()[:6]:
-            for cell in row:
-                if cell != 0:
-                    rewards -= 10
-        return rewards
+    def edge_alignment_reward(self):
+        state = self.tetris.game_area()
+        left_edge_filled = np.sum(state[:, 0] != 0)
+        right_edge_filled = np.sum(state[:, -1] != 0)
+        return (left_edge_filled + right_edge_filled) * 10  # récompense pour les bords remplis
+
+    def survival_reward(self):
+        return self.frame_count // 100  # 1 point pour chaque 100 frames survécues
+
+    def cavity_penalty(self):
+        state = self.tetris.game_area()
+        penalty = 0
+        for i in range(1, state.shape[0]):
+            for j in range(state.shape[1]):
+                if state[i, j] == 0 and np.any(state[:i, j] != 0):  # s'il y a un espace vide sous un bloc
+                    penalty += 1
+        return penalty * (-50)  # pénalité par cavité
+
+
+
 
     def score_rewards(self):
-        rewards = self.tetris.score*100
-        return rewards
+        return self.tetris.score * 20
 
     def hole_rewards(self):
-        rows, cols = self.tetris.game_area().shape
+        state = self.tetris.game_area()
+        rows, cols = state.shape
         hole = 0
 
-        for i in range(rows):
+        for i in range(1, rows):
             for j in range(cols):
-                if self.tetris.game_area()[i, j] == 0:
-                    if i < rows - 1 and self.tetris.game_area()[i + 1, j] != 0:
-                        hole += 1
+                if state[i, j] == 0 and state[i - 1, j] != 0:
+                    hole += 1
 
-        rewards = hole * (-10)
-        return rewards
+        return hole * (-100)
 
-    def frame_rewards(self):
-        reward = self.frame_count * -1
-        return reward
+
 
     def get_rewards(self):
-        return self.game_over_rewards() + self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return (self.bumpiness_penalty() +
+                self.lines_rewards() +
+                self.height_penalty() +
+                self.score_rewards() +
+                self.hole_rewards() +
+                self.game_over_rewards() +
+                self.compactness_reward() +
+                self.edge_alignment_reward() +
+                self.survival_reward() +
+                self.cavity_penalty())
 
     def reset(self):
         self.tetris.reset_game(self.seed)

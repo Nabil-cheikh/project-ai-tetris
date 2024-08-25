@@ -220,14 +220,14 @@ class TetrisInfos:
         seconds = int(play_time - minutes * 60)
         milliseconds = int((play_time - minutes * 60 - seconds)*1000)
         time = '{:02d}:{:02d}.{:03d}'.format(minutes, seconds, milliseconds)
-        if PRINT_GAME_OVER_INFOS:
-            print(PrintColor.cstr_with_arg('GAME OVER', 'pure red', True))
-            print(f"Game Infos:\
-                    \n-Total Rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
-                    \n-Game Score:{PrintColor.cstr_with_arg(score, 'pure green' if score > 0 else 'pure red', True)}\
-                    \n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines >= 100 else 'pure red', True)}\
-                    \n-Time:{time}\
-                    \n-Tetrominos used:{nb_tetrominos_used}")
+        #if PRINT_GAME_OVER_INFOS:
+            #print(PrintColor.cstr_with_arg('GAME OVER', 'pure red', True))
+            #print(f"Game Infos:\
+                    #\n-Total Rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
+                    #\n-Game Score:{PrintColor.cstr_with_arg(score, 'pure green' if score > 0 else 'pure red', True)}\
+                    #\n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines >= 100 else 'pure red', True)}\
+                    #\n-Time:{time}\
+                    #\n-Tetrominos used:{nb_tetrominos_used}")
         data = Datas.update_datas(data, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
         return data
 
