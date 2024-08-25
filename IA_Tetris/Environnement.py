@@ -99,14 +99,14 @@ class TetrisEnv() :
             y += next_pos[1]
             if x < -3 or x >= 6 \
                     or y < 0 or y >= BOARD_HEIGHT \
-                    or self.game_area()[x][y] != 0:
+                    or self.game_area_only()[x][y] != 0:
                 return True
         return False
 
 
     def _add_piece_to_board(self, piece, piece_id, pos):
         '''Place a piece in the board, returning the resulting board'''
-        board = [x[:] for x in self.game_area()]
+        board = [x[:] for x in self.game_area_only()]
         for x, y in piece:
             board[y + pos[1]][x + pos[0]] = piece_id
         return board
@@ -138,7 +138,7 @@ class TetrisEnv() :
             # obtain initial position :
             initial_pos = [min_x, 0]
             # for all positions in the width
-            for x in range(-3, 6 - width_tetro):
+            for x in range(0, BOARD_WIDTH- width_tetro):
                 next_pos = [x, 0]
 
                 # Drop piece
