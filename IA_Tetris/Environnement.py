@@ -188,7 +188,7 @@ class TetrisEnv() :
 
     def execute_actions(self):
         if len(self.stack_actions) > 0:
-            print('stack inputs: ', self.stack_actions)
+            # print('stack inputs: ', self.stack_actions)
             if self.stack_actions[0] == 'down':
                 self.pyboy_env.button_press(self.stack_actions[0])
             else:
@@ -203,7 +203,7 @@ class TetrisEnv() :
         return rewards
 
     def _clear_lines(self, board):
-        lines_to_clear = [index for index, row in enumerate(board) if sum(row) == BOARD_WIDTH]
+        lines_to_clear = [index for index, row in enumerate(board) if 0 not in row]
         if lines_to_clear:
             board = [row for index, row in enumerate(board) if index not in lines_to_clear]
             # Add new lines at the top

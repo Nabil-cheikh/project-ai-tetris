@@ -50,9 +50,9 @@ def main():
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
                     reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
                     # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, best_state, reward, done)
+                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
                     # Update the current state
-                    current_state = best_state
+                    current_state = next_states[best_action]
 
                 done = env.game_over()
                 # If done, print the score
