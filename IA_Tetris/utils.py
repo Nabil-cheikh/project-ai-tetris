@@ -146,7 +146,7 @@ class TetrisInfos:
 
         return colored_game_area
 
-    def print_tetromino(tetromino):
+    #def print_tetromino(tetromino):
         s = ''
         tetromino_id = TetrisInfos.get_tetromino_id(tetromino)
         tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][0]

@@ -18,7 +18,7 @@ class TetrisEnv:
                         scale = pyboy.defaults["scale"],
                         symbols = None,
                         bootrom = None,
-                        sound = True,
+                        sound = False,
                         sound_emulated = False,
                         cgb = None,
                         log_level = pyboy.defaults["log_level"],
@@ -34,7 +34,7 @@ class TetrisEnv:
 
         TetrisEnv.df = Datas.get_dataframe()
 
-    # Le reste du code reste inchangé
+
 
     def run_game(self, n_episodes=None):
         self.tetris.start_game(timer_div=self.seed)
@@ -95,14 +95,20 @@ class TetrisEnv:
                 self.compactness_reward(),
                 self.edge_alignment_reward(),
                 self.survival_reward(),
-                self.cavity_penalty())
+                self.cavity_penalty(),
+                self.game_area(),
+                self.get_rewards())
 
     def game_over(self):
         return self.tetris.game_over()
 
+    def get_current_tetromino_id(self):
+        """Renvoie l'identifiant du tétrimino actuel."""
+        return self.tetris.current_tetromino()
+
     def actions(self, action):
-        self.inputs.append(action)
-        self.pyboy_env.button(TetrisInfos.get_input(action))
+            self.inputs.append(action)
+            self.pyboy_env.button(TetrisInfos.get_input(action))
 
     def lines_rewards(self):
         return (self.tetris.lines*30)**2
@@ -123,7 +129,7 @@ class TetrisEnv:
         filled_cells = np.count_nonzero(state)
         total_cells = np.prod(state.shape)
         compactness_ratio = filled_cells / total_cells
-        return compactness_ratio * 100  # récompense basée sur la compacité
+        return compactness_ratio * 100
 
 
 

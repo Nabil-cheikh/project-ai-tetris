@@ -21,7 +21,7 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 SHOW_GAME_WINDOW = True
 GAME_SPEED = 0 # 0 > max speed
 SEED = 1
-NB_EPISODES = 500
+NB_EPISODES = 4000
 GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 

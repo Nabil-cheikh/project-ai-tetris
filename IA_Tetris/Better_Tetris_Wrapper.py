@@ -112,9 +112,11 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
             self.set_current_tetromino(self._last_next_tetromino)
 
             if PRINT_GAME_AREAS:
-                print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(self.current_tetromino())}')
-                print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(self.next_tetromino())}')
-                print(TetrisInfos.better_game_area(self.game_area_only()))
+                #print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(self.current_tetromino())}')
+                #print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(self.next_tetromino())}')
+                #print(TetrisInfos.better_game_area(self.game_area_only()))
+                pass
+
 
             if PLAY_MODE == 'Random' or PLAY_MODE == 'Agent':
                 # Fix to allow spamming down button when a new tetromino spawn
