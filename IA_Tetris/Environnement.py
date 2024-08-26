@@ -31,6 +31,7 @@ class TetrisEnv() :
         self.frame_count = 0
         self.seed = np.random.randint(0, sys.maxsize) if SEED == None else SEED # Si SEED == None, on génère une seed random qu'on peut stocker pour la sauvegarder dans le csv
         self.inputs = []
+        self.stack_actions = []
 
         # /!\ ##########################################
         # METTRE À FALSE QUAND ON COMMENCERA À AVOIR DE VRAIES DONNÉES
@@ -89,48 +90,179 @@ class TetrisEnv() :
     def game_area(self):
         return self.tetris.game_area()
 
-    def state(self):
-        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards()]
+    def state(self, board=None):
+        if board == None:
+            board = self.game_area_only()
+        lines, board = self._clear_lines(board)
+        total_bumpiness = self._bumpiness(board)
+        holes = self._number_of_holes(board)
+        sum_height = self._height(board)
 
-    # def get_next_states(self):
-    #     states = {}
-    #     piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
-    #     rotations = []
+        return [lines, total_bumpiness, holes, sum_height]
 
-    #     if piece_id == 3:
-    #         rotations = [0]
-    #     elif piece_id == 2 or piece_id == 6 or piece_id == 7:
-    #         rotations = [0, 90]
-    #     else:
-    #         rotations = [0, 90, 180, 270]
+    def _check_collision(self, piece, next_pos):
+        '''Check if there is a collision between the current piece and the board'''
+        for x, y in piece:
+            x += next_pos[0]
+            y += next_pos[1]
+            if x < 0 or x >= BOARD_WIDTH \
+                    or y < 0 or y >= BOARD_HEIGHT:
+                return True
+            if self.game_area_only()[y][x] != 0:
+                return True
 
-    #     for rotation in rotations:
-    #         piece =
-    #         min_x =
-    #         max_x =
-    #         for x in range(-min_x, self.game_area().shape[0] - max_x):
-    #             states[x, rotation] = self.state()
+        return False
 
-    #     return states
+
+    def _add_piece_to_board(self, piece, piece_id, pos):
+        '''Place a piece in the board, returning the resulting board'''
+        board = [list(x[:]) for x in self.game_area_only()]
+        for x, y in piece:
+            board[y + pos[1]][x + pos[0]] = piece_id
+        return board
+
+    def get_next_states(self):
+        states = {}
+        piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
+        rotations = []
+
+        if piece_id == 3:
+            rotations = [0]
+        elif piece_id == 2 or piece_id == 6 or piece_id == 7:
+            rotations = [0, 90]
+        else:
+            rotations = [0, 90, 180, 270]
+
+        for rotation in rotations:
+            piece = TetrisInfos.TETROMINOS[piece_id][rotation]
+            min_x = min(p[0] for p in piece)
+            max_x = max(p[0] for p in piece)
+
+            # for all positions in the width
+            for x in range(0, BOARD_WIDTH - (max_x-min_x)):
+                next_pos = [x, 0]
+
+                # Drop piece
+                while not self._check_collision(piece, next_pos):
+                    next_pos[1] +=1
+                next_pos[1] -= 1
+
+                # Valid move
+                if next_pos[1] >= 0:
+                    new_board = self._add_piece_to_board(piece, piece_id, next_pos)
+                    states[(tuple(next_pos), rotation)] = self.state(new_board)
+
+        return states
 
     def game_over(self):
         return self.tetris.game_over()
 
-    def actions(self, action):
+    def actions(self, action, current_piece, rotation_done):
         self.inputs.append(action)
-        self.pyboy_env.button(TetrisInfos.get_input(action))
+        # print('action: ', action)
+        # récupérer les infos importantes :
+
+        rotation = action[1]
+        current_x, current_y = current_piece
+        final_x, final_y = action[0]
+        done = len(self.stack_actions) == 0
+
+        if len(self.stack_actions) == 0:
+            if rotation != 0:
+                for _ in range(int(rotation / 90)):
+                    self.stack_actions.append('a')
+            if current_x != final_x:
+                diff_x = final_x - current_x
+                if diff_x > 0:
+                    for _ in range(diff_x):
+                        self.stack_actions.append('right')
+                else:
+                    for _ in range(abs(diff_x)):
+                        self.stack_actions.append('left')
+            if current_y != final_y:
+                diff_y = final_y - current_y
+                for _ in range(diff_y):
+                    self.stack_actions.append('down')
+
+        return (current_x, current_y), done
+
+    def execute_actions(self):
+        if len(self.stack_actions) > 0:
+            # print('stack inputs: ', self.stack_actions)
+            if self.stack_actions[0] == 'down':
+                self.pyboy_env.button_press(self.stack_actions[0])
+            else:
+                self.pyboy_env.button(self.stack_actions[0])
+            self.stack_actions.pop(0)
+
+    def all_actions_done(self):
+        return len(self.stack_actions) == 0
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200
         return rewards
 
+    def _clear_lines(self, board):
+        lines_to_clear = [index for index, row in enumerate(board) if 0 not in row]
+        if lines_to_clear:
+            board = [row for index, row in enumerate(board) if index not in lines_to_clear]
+            # Add new lines at the top
+            for _ in lines_to_clear:
+                board.insert(0, [0 for _ in range(BOARD_WIDTH)])
+        return len(lines_to_clear), board
+
+
+    def _bumpiness(self, board):
+        '''Sum of the differences of heights between pair of columns'''
+        total_bumpiness = 0
+        min_ys = []
+
+        for col in zip(*board):
+            i = 0
+            while i < BOARD_HEIGHT and col[i] == 0:
+                i += 1
+            min_ys.append(i)
+
+        for i in range(len(min_ys) - 1):
+            total_bumpiness += abs(min_ys[i] - min_ys[i+1])
+
+        return total_bumpiness
+
+
+    def _number_of_holes(self, board):
+        '''Number of holes in the board (empty square with at least one block above it)'''
+        holes = 0
+
+        for col in zip(*board):
+            i = 0
+            while i < BOARD_HEIGHT and col[i] == 0:
+                i += 1
+            holes += len([x for x in col[i+1:] if x == 0])
+
+        return holes
+
+
+    def _height(self, board):
+        '''Sum and maximum height of the board'''
+        sum_height = 0
+
+        for col in zip(*board):
+            i = 0
+            while i < BOARD_HEIGHT and col[i] == 0:
+                i += 1
+            height = BOARD_HEIGHT - i
+            sum_height += height
+
+        return sum_height
+
+
     def bumpiness_rewards(self):
-        state = self.tetris.game_area_only()
+        state_board = self.tetris.game_area_only()
         column_heights = []
 
         # Calcul de la hauteur de chaque colonne
-        for i in range(state.shape[1]):
-            column = state[:, i]
+        for i in range(state_board.shape[1]):
+            column = state_board[:, i]
             bloc_column = [x for x in column if x != 0]  # Filtre les cellules non vides
             column_heights.append(len(bloc_column))
 
@@ -172,14 +304,18 @@ class TetrisEnv() :
         rewards = hole * (-1000)
         return rewards
 
-    def frame_rewards(self):
-        reward = self.frame_count * -1
-        return reward
+    # def frame_rewards(self):
+    #     reward = self.frame_count * -1
+    #     return reward
+    # def frame_rewards(self):
+    #     reward = self.frame_count * -1
+    #     return reward
 
     def get_rewards(self):
-        return self.frame_rewards() + self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
+        self.stack_actions = []
         self.tetris.reset_game(self.seed)
 
     def close(self):
