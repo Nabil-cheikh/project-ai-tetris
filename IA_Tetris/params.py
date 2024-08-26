@@ -26,7 +26,7 @@ GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
 # Prints debug infos
-PRINT_GAME_AREAS = True
+PRINT_GAME_AREAS = False
 PRINT_GAME_OVER_INFOS = True
 
 # Agent
@@ -38,6 +38,9 @@ DATAS_STEP = 'Test' # 'Test' > replace csv / 'Prod' > add new datas to last csv
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
+
+BOARD_WIDTH = 10
+BOARD_HEIGHT = 18
 
 DTYPES = {
     'Time': 'timestamp',
