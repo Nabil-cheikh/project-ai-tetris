@@ -101,22 +101,14 @@ class TetrisEnv() :
 
     def _check_collision(self, piece, next_pos):
         '''Check if there is a collision between the current piece and the board'''
-        # TODO : File "/home/nabil/code/project-ai-tetris/IA_Tetris/Environnement.py", line 109, in _check_collision
-        #     or self.game_area_only()[x][y] != 0:
-        # IndexError: index 10 is out of bounds for axis 0 with size 10
         for x, y in piece:
             x += next_pos[0]
             y += next_pos[1]
-            print("out of bond")
-            print("x =", x)
-            print("y =", y)
             if x < 0 or x >= BOARD_WIDTH \
                     or y < 0 or y >= BOARD_HEIGHT:
-                print("RENTRE LA ZEBI")
                 return True
             if self.game_area_only()[y][x] != 0:
                 return True
-            print("out of NOT bond")
 
         return False
 
@@ -142,10 +134,11 @@ class TetrisEnv() :
 
         for rotation in rotations:
             piece = TetrisInfos.TETROMINOS[piece_id][rotation]
-            width_tetro = max(p[0] for p in piece) - min(p[0] for p in piece)
+            min_x = min(p[0] for p in piece)
+            width_tetro = max(p[0] for p in piece) - min_x
 
             # for all positions in the width
-            for x in range(0, BOARD_WIDTH- width_tetro):
+            for x in range(-min_x, BOARD_WIDTH - width_tetro):
                 next_pos = [x, 0]
 
                 # Drop piece
@@ -156,8 +149,7 @@ class TetrisEnv() :
                 # Valid move
                 if next_pos[1] >= 0:
                     new_board = self._add_piece_to_board(piece, piece_id, next_pos)
-                    print(new_board)
-                    states[(next_pos, rotation)] = self.state(new_board)
+                    states[(tuple(next_pos), rotation)] = self.state(new_board)
 
         return states
 
@@ -181,7 +173,7 @@ class TetrisEnv() :
         if not done:
             if current_x == final_x:
                 self.pyboy_env.button('down')
-                current_y -= 1
+                current_y += 1
             else:
                 if current_x < final_x:
                     self.pyboy_env.button('right')

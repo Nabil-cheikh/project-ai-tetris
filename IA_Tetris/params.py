@@ -26,7 +26,7 @@ GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
 # Prints debug infos
-PRINT_GAME_AREAS = True
+PRINT_GAME_AREAS = False
 PRINT_GAME_OVER_INFOS = True
 
 # Agent

@@ -21,6 +21,7 @@ def main():
             #current_state = np.reshape(current_state, [1, state_size])
 
             done = False
+            best_action = None
             is_action_finished = True
             current_piece_id = TetrisInfos.get_tetromino_id(env.tetris.current_tetromino())
 
@@ -28,6 +29,7 @@ def main():
             while not done:
                 env.tetris.tick()
                 # Get the best action to take based on the current state
+                best_state = current_state
                 rotation_done=True
                 if is_action_finished:
                     next_states = env.get_next_states()
@@ -47,15 +49,11 @@ def main():
                 if is_action_finished:
                     lines, total_bumpiness, holes, sum_height = best_state
                     reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
-
-
-                done = env.game_over()
-
-                # Add the experience to the agent's memory
-                agent.add_to_memory(current_state, best_state, reward, done)
-
-                # Update the current state
-                current_state = best_state
+                    done = env.game_over()
+                    # Add the experience to the agent's memory
+                    agent.add_to_memory(current_state, best_state, reward, done)
+                    # Update the current state
+                    current_state = best_state
 
                 # If done, print the score
                 if done:
