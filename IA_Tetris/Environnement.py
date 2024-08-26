@@ -31,6 +31,7 @@ class TetrisEnv() :
         self.frame_count = 0
         self.seed = np.random.randint(0, sys.maxsize) if SEED == None else SEED # Si SEED == None, on génère une seed random qu'on peut stocker pour la sauvegarder dans le csv
         self.inputs = []
+        self.stack_actions = []
 
         # /!\ ##########################################
         # METTRE À FALSE QUAND ON COMMENCERA À AVOIR DE VRAIES DONNÉES
@@ -135,10 +136,10 @@ class TetrisEnv() :
         for rotation in rotations:
             piece = TetrisInfos.TETROMINOS[piece_id][rotation]
             min_x = min(p[0] for p in piece)
-            width_tetro = max(p[0] for p in piece) - min_x
+            max_x = max(p[0] for p in piece)
 
             # for all positions in the width
-            for x in range(-min_x, BOARD_WIDTH - width_tetro):
+            for x in range(0, BOARD_WIDTH - (max_x-min_x)):
                 next_pos = [x, 0]
 
                 # Drop piece
@@ -158,29 +159,41 @@ class TetrisEnv() :
 
     def actions(self, action, current_piece, rotation_done):
         self.inputs.append(action)
-
+        # print('action: ', action)
         # récupérer les infos importantes :
+
         rotation = action[1]
         current_x, current_y = current_piece
         final_x, final_y = action[0]
-        done = False
-        if rotation != 0 and not rotation_done:
-            for _ in range(int(rotation % 90)):
-                self.pyboy_env.button('a')
+        done = len(self.stack_actions) == 0
 
-        if current_x == final_x and current_y == final_y:
-            done = True
-        if not done:
-            if current_x == final_x:
-                self.pyboy_env.button('down')
-                current_y += 1
-            else:
-                if current_x < final_x:
-                    self.pyboy_env.button('right')
-                    current_x += 1
+        if len(self.stack_actions) == 0:
+            if rotation != 0:
+                for _ in range(int(rotation % 90)):
+                    self.stack_actions.append('a')
+            if current_x != final_x:
+                diff_x = final_x - current_x
+                if diff_x > 0:
+                    for _ in range(diff_x):
+                        self.stack_actions.append('right')
                 else:
-                    self.pyboy_env.button('left')
-                    current_x -= 1
+                    for _ in range(abs(diff_x)):
+                        self.stack_actions.append('left')
+            if current_y != final_y:
+                diff_y = final_y - current_y
+                for _ in range(diff_y):
+                    self.stack_actions.append('down')
+
+            print('stack inputs: ', self.stack_actions)
+
+            if len(self.stack_actions) > 0:
+                self.pyboy_env.button(self.stack_actions[0])
+                self.stack_actions.pop(0)
+        else:
+            self.pyboy_env.button(self.stack_actions[0])
+            self.stack_actions.pop(0)
+
+        done = len(self.stack_actions) == 0
 
         return (current_x, current_y), done
 
@@ -303,6 +316,7 @@ class TetrisEnv() :
         return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
+        self.stack_actions = []
         self.tetris.reset_game(self.seed)
 
     def close(self):

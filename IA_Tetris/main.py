@@ -31,10 +31,10 @@ def main():
                 # Get the best action to take based on the current state
                 best_state = current_state
                 rotation_done=True
-                if is_action_finished:
+                if env.tetris.is_new_tetromino():
+                    env.stack_actions = []
                     next_states = env.get_next_states()
-                    best_state = agent.best_state(next_states)
-                    is_action_finished = False
+                    best_state = agent.best_state(next_states.values())
                     rotation_done=False
                     for action, state in next_states.items():
                         if best_state == state:
@@ -47,7 +47,7 @@ def main():
                 curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
                 if is_action_finished:
-                    lines, total_bumpiness, holes, sum_height = best_state
+                    lines, total_bumpiness, holes, sum_height = next_states[best_action]
                     reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
                     done = env.game_over()
                     # Add the experience to the agent's memory
