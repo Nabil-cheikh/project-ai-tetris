@@ -194,9 +194,9 @@ class TetrisEnv() :
             else:
                 self.pyboy_env.button(self.stack_actions[0])
             self.stack_actions.pop(0)
-        done = len(self.stack_actions) == 0
 
-        return done
+    def all_actions_done(self):
+        return len(self.stack_actions) == 0
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200

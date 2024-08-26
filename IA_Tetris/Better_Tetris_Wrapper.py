@@ -16,9 +16,10 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.spawner_area = self.game_area()[1:3,3:7] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
         self._last_spawner_area = np.zeros((2, 4), dtype='int8')
         self._current_tetromino = self.next_tetromino()
-        self._last_next_tetromino = self.next_tetromino()
         self._game_area_only = self.game_area()
         self._last_game_area = np.zeros(self.game_area().shape, dtype='int8')
+        self.current_tetromino_area = np.zeros(self.game_area().shape, dtype='uint8')
+        self.last_current_tetromino_area = np.zeros(self.game_area().shape, dtype='uint8')
         self.total_tetromino_used = 0
         self.fps = 0
         self._last_time_fps = time.time()
@@ -62,11 +63,14 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.play_time = 0
         self.delta_time = 0
         self.time_scale = 1
+        self._is_new_tetromino = True
         self.spawner_area = self.game_area()[1:3,3:7] # The spawner area is the area of shape (2, 4) on top of the game area where new tetropino spawn
         self._last_spawner_area = np.zeros((2, 4), dtype='int8')
         self._current_tetromino = self.next_tetromino()
         self._game_area_only = self.game_area()
         self._last_game_area = np.zeros(self.game_area().shape, dtype='int8')
+        self.current_tetromino_area = np.zeros(self.game_area().shape, dtype='uint8')
+        self.last_current_tetromino_area = np.zeros(self.game_area().shape, dtype='uint8')
         self.total_tetromino_used = 0
         self.fps = 0
         self._last_time_fps = time.time()
@@ -86,17 +90,26 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
 
     def tick(self, count=1, render=True) -> bool:
         tick = self.pyboy.tick(count, render)
+
+        self.score = self.tetris.score
+        self.lines = self.tetris.lines
         self.level = self.tetris.level
         self.env.frame_increment()
 
         # Time and FPS
         self.delta_time = time.time() - self._last_time_fps
         self.fps = round(1 / self.delta_time, 0)
-        self.spawner_area = self.game_area()[1:3,3:7]
+        self.time_scale = self.fps / GB_NORMAL_FPS
+        self.play_time += self.delta_time * self.time_scale
+
         self.set_new_tetromino(False)
 
         # Check new tetromino
         is_new_tetromino, current_tetromino = self.new_tetromino_spawned(self.game_area(), self._last_game_area)
+
+        if not np.array_equal(self.current_tetromino_area, self.last_current_tetromino_area):
+            self.env.execute_actions()
+
         if is_new_tetromino:
             self.set_game_area_only()
             self.set_new_tetromino(True)
@@ -110,12 +123,12 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
             if PLAY_MODE == 'Random' or PLAY_MODE == 'Agent':
                 # Fix to allow spamming down button when a new tetromino spawn
                 self.pyboy.button_release('down')
-                    # break
 
-                # Update values
+        # Update values
         self._last_spawner_area = self.spawner_area
+        self.last_current_tetromino_area = self.current_tetromino_area
         self._last_game_area = self.game_area()
-        self._last_next_tetromino = self.next_tetromino()
+
         self._last_time_fps = time.time()
 
         return tick
@@ -132,22 +145,22 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
 
         # Calcule de la différence entre la zone de jeu actuelle et la zone de jeu de la frame précédente
         # On est censé avoir une zone de jeu vide contenant uniquement les éléments en plus par rapport à la frame précédente
-        current_tetromino_area = game_area - last_game_area
+        self.current_tetromino_area = game_area - last_game_area
         # Vérification des valeurs issues de la soustraction:
         # pendant la phase de déplacements du current_tetromino, on peut avoir des valeurs négatives
         # (ou égales à 4 millions et quelques car game_area() est au format "uint32"), donc on les transforme en 0
         allowed_values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-        invalid_mask = ~np.isin(current_tetromino_area, allowed_values)
-        current_tetromino_area[invalid_mask] = 0
+        invalid_mask = ~np.isin(self.current_tetromino_area, allowed_values)
+        self.current_tetromino_area[invalid_mask] = 0
         # TODO: Stocker une variable pour le game_area avec uniquement le current tetromino ?
         # Encore une fois on calcule le nombre de valeurs uniques, mais dans cette "différence" de zones de jeu
-        unique_val, unique_count = np.unique(current_tetromino_area, return_counts=True)
+        unique_val, unique_count = np.unique(self.current_tetromino_area, return_counts=True)
 
         # Check si :
         #   -On a moins de case vide (de valeur "0") actuellement, par rapport à la frame précédente
         #   -La différence entre la zone de jeu actuelle et celle de la frame précédente renvoie une zone contenant uniquement des 0 (cases vide), et 4 cases d'une autre valeur (l'ID du nouveau tetromino)
         # Si c'est le cas, on renvoie le nouveau tetromino
-        return (count_unique[0] < count_unique_last[0] and len(unique_val) == 2 and 4 in unique_count), self.get_current_tetromino(unique_val)
+        return (count_unique.get(0, 0) < count_unique_last.get(0, 0) and len(unique_val) == 2 and 4 in unique_count), self.get_current_tetromino(unique_val)
 
     def get_current_tetromino(self, unique_val):
         # Si dans la "différence" entre la zone de jeu actuelle et cette de la frame précédente, il n'y a pas que des 0 (cases vides) et uniquement 1 autre valeur (celle du nouveau tetromino),
