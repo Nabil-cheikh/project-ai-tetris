@@ -107,9 +107,6 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         # Check new tetromino
         is_new_tetromino, current_tetromino = self.new_tetromino_spawned(self.game_area(), self._last_game_area)
 
-        if not np.array_equal(self.current_tetromino_area, self.last_current_tetromino_area):
-            self.env.execute_actions()
-
         if is_new_tetromino:
             self.set_game_area_only()
             self.set_new_tetromino(True)
@@ -123,6 +120,11 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
             if PLAY_MODE == 'Random' or PLAY_MODE == 'Agent':
                 # Fix to allow spamming down button when a new tetromino spawn
                 self.pyboy.button_release('down')
+
+        if not np.array_equal(self.current_tetromino_area, self.last_current_tetromino_area):
+            self.env.execute_actions()
+            # if self.env.all_actions_done():
+            #     self.pyboy.button('down')
 
         # Update values
         self._last_spawner_area = self.spawner_area
