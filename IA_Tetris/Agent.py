@@ -50,10 +50,10 @@ class TetrisAgent:
         best_state = None
 
         if random.random() <= self.epsilon:
-            return random.choice(list(states.values()))
+            return random.choice(list(states))
 
         else:
-            for _, state in states:
+            for state in states:
                 value = self.predict_value(np.reshape(state, [1, self.state_size]))
 
                 if not max_value or value > max_value:
