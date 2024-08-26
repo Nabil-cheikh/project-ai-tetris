@@ -209,13 +209,15 @@ class TetrisInfos:
         return -1
 
     def get_input_id(input):
+        '''Get an input ID from a string value (ex: 'left' > 0)'''
         return INPUTS.index(input)
 
     def get_input(id):
+        '''Get an input string value from an ID (ex: 0 > 'left')'''
         return INPUTS[id]
 
     def game_over(data, play_time, reward, score, lines, nb_tetrominos_used, seed, inputs):
-        # Values we have to saved on a DataFrame
+        '''Values we have to saved on a DataFrame'''
         minutes = int(play_time // 60)
         seconds = int(play_time - minutes * 60)
         milliseconds = int((play_time - minutes * 60 - seconds)*1000)
@@ -225,7 +227,7 @@ class TetrisInfos:
             print(f"Game Infos:\
                     \n-Total Rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
                     \n-Game Score:{PrintColor.cstr_with_arg(score, 'pure green' if score > 0 else 'pure red', True)}\
-                    \n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines >= 100 else 'pure red', True)}\
+                    \n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines > 0 else 'pure red', True)}\
                     \n-Time:{time}\
                     \n-Tetrominos used:{nb_tetrominos_used}")
         data = Datas.update_datas(data, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
@@ -233,13 +235,40 @@ class TetrisInfos:
 
 class Datas:
     def update_datas(data, time, score, lines, rewards, nb_blocs, seed, inputs, path=CSV_PATH):
-        new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
-        data = data._append(new_datas, ignore_index=True)
-        data.to_csv(path)
+        if PLAY_MODE == 'Agent':
+            # We want to save datas only if it's our agent who is playing
+            new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
+            data = data._append(new_datas, ignore_index=True)
+            data.to_csv(path)
         return data
 
-    def get_dataframe():
+    def get_dataframe(path=CSV_PATH):
         if DATAS_STEP == 'Prod':
-            return pd.read_csv(CSV_PATH)
+            # Get current csv
+            try:
+                # If exist
+                df = pd.read_csv(path)
+            except FileNotFoundError:
+                # Else create new csv
+                df = pd.DataFrame(columns=COLUMN_NAMES)
+            return df
         else:
+            # Overwrite current csv
             return pd.DataFrame(columns=COLUMN_NAMES)
+
+class Debug:
+    def show_game_area(message):
+        if PRINT_GAME_AREAS:
+            print(message)
+
+    def on_tick(message):
+        if PRINT_ON_TICK_INFOS:
+            print(message)
+
+    def on_new_tetromino(message):
+        if PRINT_ON_NEW_TETROMINO_INFOS:
+            print(message)
+
+    def on_game_over(message):
+        if PRINT_GAME_OVER_INFOS:
+            print(message)

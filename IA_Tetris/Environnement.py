@@ -5,6 +5,7 @@ import sys
 import numpy as np
 from IA_Tetris.params import *
 from IA_Tetris.Better_Tetris_Wrapper import Tetris
+from IA_Tetris.utils import PrintColor
 from IA_Tetris.utils import TetrisInfos
 from IA_Tetris.utils import Datas
 
@@ -29,6 +30,18 @@ class TetrisEnv() :
         self.tetris = Tetris(self.pyboy_env, self)
         self.tetris.game_area_mapping()
         self.frame_count = 0
+        self.down_button_used = False
+        self.last_down_button_reward = 0
+        self.total_down_button_rewards = 0
+        self.last_nb_tetromino_rewards = 0
+        self.total_nb_tetrominos_rewards = 0
+        self.last_score_rewards = 0
+        self.total_score_rewards = 0
+        self.last_lines_rewards = 0
+        self.total_lines_rewards = 0
+        self.total_holes = 0
+        self.total_height = 0
+        self.total_bumpiness = 0
         self.seed = np.random.randint(0, sys.maxsize) if SEED == None else SEED # Si SEED == None, on génère une seed random qu'on peut stocker pour la sauvegarder dans le csv
         self.inputs = []
 
@@ -59,6 +72,10 @@ class TetrisEnv() :
         while self.tetris.tick():
             self.frame_increment()
 
+            if self.tetris.is_new_tetromino():
+                positif = self.get_rewards() > 0
+                print(PrintColor.cstr_with_arg(f"Rewards: {'+' if positif else ''}{self.get_rewards()}", 'pure green' if positif else 'pure red', True))
+
             if PLAY_MODE == 'Random':
                 # Si on veut tester avec des inputs randoms
                 rand_input = INPUTS[np.random.randint(0, len(INPUTS))]
@@ -76,7 +93,7 @@ class TetrisEnv() :
     def get_results(self):
         TetrisEnv.df = TetrisInfos.game_over(data=TetrisEnv.df,
                                                 play_time=self.tetris.play_time,
-                                                reward=self.get_rewards(),
+                                                reward=self.get_total_rewards(),
                                                 score=self.tetris.score,
                                                 lines=self.tetris.lines,
                                                 nb_tetrominos_used=self.tetris.total_tetromino_used,
@@ -90,10 +107,10 @@ class TetrisEnv() :
         return self.tetris.game_area()
 
     def state(self):
-        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards()]
+        return [self.bumpiness_rewards(), self.lines_rewards(), self.heigh_rewards(), self.score_rewards(), self.hole_rewards() + self.down_button_reward() + self.nb_tetrominos_reward()]
 
-    # def get_next_states(self):
-    #     states = {}
+    def get_next_states(self):
+        states = {}
     #     piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
     #     rotations = []
 
@@ -111,18 +128,16 @@ class TetrisEnv() :
     #         for x in range(-min_x, self.game_area().shape[0] - max_x):
     #             states[x, rotation] = self.state()
 
-    #     return states
+        return states
 
     def game_over(self):
         return self.tetris.game_over()
 
     def actions(self, action):
+        if TetrisInfos.get_input(action) == 'down':
+            self.down_button_used = True
         self.inputs.append(action)
         self.pyboy_env.button(TetrisInfos.get_input(action))
-
-    def lines_rewards(self):
-        rewards = self.tetris.lines*200
-        return rewards
 
     def bumpiness_rewards(self):
         state = self.tetris.game_area_only()
@@ -144,42 +159,102 @@ class TetrisEnv() :
         return rewards * (-1)
 
     def heigh_rewards(self):
-        rewards = 0
+        game_area = self.game_area_only()
+        rows, cols = game_area.shape
+        max_height = 0
 
-        # Parcours de chaque cellule dans la zone de jeu
-        for row in self.tetris.game_area():
-            for cell in row:
-                if cell == 0:  # Si la cellule est un trou
-                    rewards += 1
-                else:  # Si la cellule n'est pas un trou
-                    rewards -= 10
-        return rewards
+        for y in range(cols):
+            height = 0
+            for x in range(rows):
+                if height == 0 and game_area[x, y] != 0:
+                    height = rows - x
+                    break
+            if height > max_height:
+                max_height = height
 
-    def score_rewards(self):
-        rewards = self.tetris.score*1
+        rewards = max_height * (-40) if max_height >= 10 else max_height * (-10)
         return rewards
 
     def hole_rewards(self):
-        rows, cols = self.tetris.game_area().shape
+        game_area = self.tetris.game_area_only()
+        rows, cols = game_area.shape
         hole = 0
 
-        for i in range(rows):
-            for j in range(cols):
-                if self.tetris.game_area()[i, j] == 0:
-                    if i < rows - 1 and self.tetris.game_area()[i + 1, j] != 0:
-                        hole += 1
+        for y in range(cols):
+            found_tetromino = False
+            for x in range(rows):
+                if found_tetromino and game_area[x, y] == 0:
+                    hole += 1
+                if not found_tetromino and game_area[x, y] != 0:
+                    found_tetromino = True
 
-        rewards = hole * (-1000)
+        rewards = hole * (-50)
         return rewards
 
     def frame_rewards(self):
         reward = self.frame_count * -1
         return reward
 
+    def update_increment_rewards(self):
+        self.last_lines_rewards = self.total_lines_rewards
+        total = self.tetris.lines * 200
+        self.total_lines_rewards += total - self.last_lines_rewards
+
+        self.last_score_rewards = self.total_score_rewards
+        total = self.tetris.score * 1
+        self.total_score_rewards += total - self.last_score_rewards
+
+        self.last_down_button_reward = self.total_down_button_rewards
+        if self.down_button_used:
+            self.total_down_button_rewards += 50
+        self.down_button_used = False
+
+        nb_tetro = 0
+        self.last_nb_tetromino_rewards = self.total_nb_tetrominos_rewards
+        last_nb_tetro_used = self.last_nb_tetromino_rewards / 10
+        if self.tetris.total_tetromino_used > last_nb_tetro_used:
+            nb_tetro = self.tetris.total_tetromino_used - last_nb_tetro_used
+            self.total_nb_tetrominos_rewards += nb_tetro * 10
+
+        self.total_holes += self.hole_rewards()
+        self.total_height += self.heigh_rewards()
+        self.total_bumpiness += self.bumpiness_rewards()
+
+    def lines_rewards(self):
+        return self.total_lines_rewards - self.last_lines_rewards
+
+    def score_rewards(self):
+        return self.total_score_rewards - self.last_score_rewards
+
+    def down_button_reward(self):
+        return self.total_down_button_rewards - self.last_down_button_reward
+
+    def nb_tetrominos_reward(self):
+        return self.total_nb_tetrominos_rewards - self.last_nb_tetromino_rewards
+
     def get_rewards(self):
-        return self.frame_rewards() + self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        # Rewards obtenues à la frame actuelle
+        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards() + self.down_button_reward() + self.nb_tetrominos_reward()
+                # + self.frame_rewards()
+
+    def get_total_rewards(self):
+        # Total de rewards obtenues depuis le début de la partie
+        return self.total_score_rewards + self.total_lines_rewards + self.total_holes + self.total_height + self.total_bumpiness + self.total_down_button_rewards + self.total_nb_tetrominos_rewards
 
     def reset(self):
+        self.down_button_used = False
+        self.last_down_button_reward = 0
+        self.total_down_button_rewards = 0
+        self.last_nb_tetromino_rewards = 0
+        self.total_nb_tetrominos_rewards = 0
+        self.last_score_rewards = 0
+        self.total_score_rewards = 0
+        self.last_lines_rewards = 0
+        self.total_lines_rewards = 0
+        self.total_holes = 0
+        self.total_height = 0
+        self.total_bumpiness = 0
+
         self.tetris.reset_game(self.seed)
 
     def close(self):

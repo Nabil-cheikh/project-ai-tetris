@@ -4,11 +4,13 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 import numpy as np
+from IA_Tetris.registry import *
+from IA_Tetris.params import *
 
 class TetrisAgent:
 
     def __init__(self, mem_size=10000, epsilon=1.0, epsilon_min=0.01,
-                 epsilon_decay=0.001, discount=0.95, replay_start_size=None):
+                 epsilon_decay=0.001, discount=0.95, replay_start_size=None, state_size=5):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
         if not replay_start_size:
@@ -18,9 +20,14 @@ class TetrisAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.discount = discount
-        self.state_size = 5
+        self.state_size = state_size
 
-        self.model = self._build_model()
+        if DATAS_STEP == 'Prod':
+            self.model, self.memory, self.epsilon = load_model()
+            if self.model == None:
+                self.model = self._build_model()
+        else:
+            self.model = self._build_model()
 
 
     def _build_model(self):
@@ -41,6 +48,7 @@ class TetrisAgent:
 
     def predict_value(self, state):
         '''Predicts the score for a certain state'''
+        state = np.reshape(state, [1, self.state_size])
         return self.model.predict(state, verbose=0)[0]
 
 
@@ -61,41 +69,43 @@ class TetrisAgent:
                         max_value = value
                         best_state = state
             except:
+                print(PrintColor.cstr_with_arg('Failed to predict best state', 'pure red', True))
                 return random.choice([0, 1, 2, 3])
 
         return best_state
 
 
-    def train(self, batch_size=32, epochs=3):
-        '''Trains the agent'''
+    def train(self, batch_size=64, epochs=3):
         n = len(self.memory)
 
-        # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:
-
             batch = random.sample(self.memory, batch_size)
 
-            # Get the expected score for the next states, in batch (better performance)
-            next_states = np.array([x[1] for x in batch])
-            next_qs = [x[0] for x in self.model.predict(next_states)]
+            # Extract states, next states, actions, and rewards from the batch
+            states = np.array([x[0] for x in batch], dtype=np.float32)
+            next_states = np.array([x[1] for x in batch], dtype=np.float32)
+            actions = np.array([x[2] for x in batch], dtype=np.int32)
+            rewards = np.array([x[3] for x in batch], dtype=np.float32)
 
-            x = []
-            y = []
+            # Predict Q-values for current states and next states
+            # print(PrintColor.cstr_with_arg(f"Agent is training with next_states (shape {next_states.shape})\n  First element: {next_states[0]}", 'cyan', True))
+            q_values = self.model.predict(states, verbose=0)
+            next_q_values = self.model.predict(next_states, verbose=0)
 
-            # Build xy structure to fit the model in batch (better performance)
-            for i, (state, _, reward, done) in enumerate(batch):
-                if not done:
-                    # Partial Q formula
-                    new_q = reward + self.discount * next_qs[i]
+            # Initialize target values
+            y = q_values.copy()
+
+            for i in range(batch_size):
+                action = actions[i]
+                if rewards[i] != -1000:
+                    y[i][action] = rewards[i] + self.discount * np.max(next_q_values[i])
                 else:
-                    new_q = reward
+                    y[i][action] = rewards[i]
 
-                x.append(state)
-                y.append(new_q)
+            # Fit the model to the target Q-values
+            self.model.fit(states, y, batch_size=batch_size, epochs=epochs, verbose=0)
 
-            # Fit the model to the given values
-            self.model.fit(np.array(x), np.array(y), batch_size=batch_size, epochs=epochs, verbose=0)
-
-            # Update the exploration variable
+            # Update the exploration rate
             if self.epsilon > self.epsilon_min:
-                self.epsilon -= self.epsilon_decay
+                self.epsilon *= self.epsilon_decay
+                self.epsilon = max(self.epsilon_min, self.epsilon)

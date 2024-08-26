@@ -1,19 +1,25 @@
 from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
+from IA_Tetris.registry import *
+import random
 
 def main():
     env = TetrisEnv()
     # state_size = env.game_area().shape[0] * env.game_area_only().shape[1]  # Adjust based on your state representation
-    agent = TetrisAgent(mem_size=10000, epsilon=1.0, epsilon_min=0.01,
-                        epsilon_decay=0.001, discount=0.95)
+    agent = TetrisAgent(mem_size=25000, epsilon=1.0, epsilon_min=0.01,
+                        epsilon_decay=0.001, discount=0.95, state_size=len(env.state()))
     # agent.state_size = state_size  # Set the state size in the agent
+
+    start_episode = 0
+    if USE_CHECKPOINT:
+        agent.memory, agent.epsilon, start_episode = load_checkpoint(agent.model)
 
     if PLAY_MODE == 'Agent':
 
         env.tetris.start_game(timer_div=env.seed)
 
-        for episode in range(NB_EPISODES):
+        for episode in range(start_episode, NB_EPISODES):
             # Reset environment and get the initial state
             env.reset()
             current_state = env.state()
@@ -23,7 +29,10 @@ def main():
             while not done:
                 env.tetris.tick()
                 # Get the best action to take based on the current state
-                best_action = agent.best_state([current_state])
+                # next_states = env.get_next_states()
+                # best_state = agent.best_state(next_states)
+
+                best_action = random.choice([0, 1, 2, 3])
 
                 # Take the action and observe the new state and reward
                 env.actions(best_action)
@@ -40,12 +49,19 @@ def main():
 
                 # If done, print the score
                 if done:
-                    print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
-                    print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Frame: {env.frame_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
-                    print(f'Epsilon: {agent.epsilon}')
+                    print(f'Episode: {episode + 1}/{NB_EPISODES}\
+                          \n  Rewards:\
+                          \n    Bumpiness: {env.bumpiness_rewards()}\
+                          \n    Holes: {env.hole_rewards()}\
+                          \n    Height: {env.heigh_rewards()}\
+                          \n    Frame: {env.total_score_rewards}\
+                          \n    Score: {env.total_lines_rewards}\
+                          \n    Lines: {env.total_down_button_rewards}\
+                          \n    Lines: {env.total_nb_tetrominos_rewards}\
+                          \n  Agent:\
+                          \n    Memory: {len(agent.memory)}/{agent.memory.maxlen}\
+                          \n    Epsilon: {agent.epsilon}/1')
                     env.get_results()
-                    # TODO: Sauvegarder le modèle
-                    # TODO: Faire des checkpoints
                     break
 
             # Train the agent after every episode
@@ -55,6 +71,10 @@ def main():
             if agent.epsilon > agent.epsilon_min:
                 agent.epsilon *= agent.epsilon_decay
 
+            if episode % CHECKPOINT_FREQUENCY == 0:
+                save_checkpoint(agent.model, agent.memory, agent.epsilon, episode, 'model.weights')
+
+        save_model(agent.model, agent.memory, agent.epsilon, 'model', True)
         # Close the environment after training
         env.close()
 
