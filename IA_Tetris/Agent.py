@@ -75,9 +75,7 @@ class TetrisAgent:
             batch = random.sample(self.memory, batch_size)
 
             # Get the expected score for the next states, in batch (better performance)
-            print(batch[0])
-            print("batch shape : ")
-            print(batch[0].size)
+
             next_states = np.array([x[1] for x in batch])
             next_qs = [x[0] for x in self.model.predict(next_states)]
 

@@ -41,10 +41,12 @@ def main():
                             best_action = action
                             break
 
-                current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
-                curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
-                # Take the action and observe the new state and reward
-                curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
+                    current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
+                    curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
+                    # Take the action and observe the new state and reward
+                    curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
+
+                is_action_finished = env.execute_actions()
 
                 if is_action_finished:
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
@@ -57,10 +59,10 @@ def main():
 
                 # If done, print the score
                 if done:
-                    print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
-                    print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Frame: {env.frame_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
-                    print(f'Epsilon: {agent.epsilon}')
-                    env.get_results()
+                    # print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
+                    # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
+                    # print(f'Epsilon: {agent.epsilon}')
+                    # env.get_results()
                     # TODO: Sauvegarder le modèle
                     # TODO: Faire des checkpoints
                     break
@@ -68,9 +70,6 @@ def main():
             # Train the agent after every episode
             agent.train(batch_size=BATCH_SIZE, epochs=EPOCHS)
 
-            # Decrease epsilon after each episode
-            if agent.epsilon > agent.epsilon_min:
-                agent.epsilon *= agent.epsilon_decay
 
         # Close the environment after training
         env.close()

@@ -169,7 +169,7 @@ class TetrisEnv() :
 
         if len(self.stack_actions) == 0:
             if rotation != 0:
-                for _ in range(int(rotation % 90)):
+                for _ in range(int(rotation / 90)):
                     self.stack_actions.append('a')
             if current_x != final_x:
                 diff_x = final_x - current_x
@@ -184,19 +184,19 @@ class TetrisEnv() :
                 for _ in range(diff_y):
                     self.stack_actions.append('down')
 
-            print('stack inputs: ', self.stack_actions)
-
-            if len(self.stack_actions) > 0:
-                self.pyboy_env.button(self.stack_actions[0])
-                self.stack_actions.pop(0)
-        else:
-            self.pyboy_env.button(self.stack_actions[0])
-            self.stack_actions.pop(0)
-
-        done = len(self.stack_actions) == 0
-
         return (current_x, current_y), done
 
+    def execute_actions(self):
+        if len(self.stack_actions) > 0:
+            print('stack inputs: ', self.stack_actions)
+            if self.stack_actions[0] == 'down':
+                self.pyboy_env.button_press(self.stack_actions[0])
+            else:
+                self.pyboy_env.button(self.stack_actions[0])
+            self.stack_actions.pop(0)
+        done = len(self.stack_actions) == 0
+
+        return done
 
     def lines_rewards(self):
         rewards = self.tetris.lines*200
@@ -256,8 +256,8 @@ class TetrisEnv() :
         return sum_height
 
 
-    def bumpiness_rewards(self, board):
-        state_board = board
+    def bumpiness_rewards(self):
+        state_board = self.tetris.game_area_only()
         column_heights = []
 
         # Calcul de la hauteur de chaque colonne
@@ -312,7 +312,6 @@ class TetrisEnv() :
     #     return reward
 
     def get_rewards(self):
-        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
         return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
