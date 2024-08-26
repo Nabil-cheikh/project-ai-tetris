@@ -107,16 +107,23 @@ class TetrisEnv() :
         for x, y in piece:
             x += next_pos[0]
             y += next_pos[1]
+            print("out of bond")
+            print("x =", x)
+            print("y =", y)
             if x < 0 or x >= BOARD_WIDTH \
-                    or y < 0 or y >= BOARD_HEIGHT \
-                    or self.game_area_only()[x][y] != 0:
+                    or y < 0 or y >= BOARD_HEIGHT:
+                print("RENTRE LA ZEBI")
                 return True
+            if self.game_area_only()[y][x] != 0:
+                return True
+            print("out of NOT bond")
+
         return False
 
 
     def _add_piece_to_board(self, piece, piece_id, pos):
         '''Place a piece in the board, returning the resulting board'''
-        board = [x[:] for x in self.game_area_only()]
+        board = [list(x[:]) for x in self.game_area_only()]
         for x, y in piece:
             board[y + pos[1]][x + pos[0]] = piece_id
         return board
@@ -149,6 +156,7 @@ class TetrisEnv() :
                 # Valid move
                 if next_pos[1] >= 0:
                     new_board = self._add_piece_to_board(piece, piece_id, next_pos)
+                    print(new_board)
                     states[(next_pos, rotation)] = self.state(new_board)
 
         return states
