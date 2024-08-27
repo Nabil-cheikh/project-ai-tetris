@@ -2,7 +2,7 @@ from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
 from IA_Tetris.utils import TetrisInfos
-from IA_Tetris.registry import save_checkpoint, save_model, load_checkpoint
+from IA_Tetris.registry import *
 
 def main():
     env = TetrisEnv()
