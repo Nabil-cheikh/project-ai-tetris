@@ -38,9 +38,10 @@ class TetrisAgent:
     def _build_model(self):
         '''Builds a Keras deep neural network model'''
         model = Sequential()
-        model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
-        model.add(Dense(units=32, activation="relu"))
-        model.add(Dense(units=8, activation="relu"))
+
+        model.add(Dense(64, input_dim=self.state_size, activation="relu"))
+        model.add(Dense(32, activation="relu"))
+        model.add(Dense(8, activation="relu"))
         model.add(Dense(1, activation="linear"))
         model.compile(loss="mse", optimizer=Adam(learning_rate=0.001))
 
