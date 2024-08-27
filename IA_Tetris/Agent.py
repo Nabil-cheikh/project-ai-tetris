@@ -30,7 +30,7 @@ class TetrisAgent:
                 self.model = self._build_model()
             else:
                 self.epsilon = self.loaded_epsilon
-                self.memory = self.loaded_memory
+                self.memory = self.loa
         else:
             self.model = self._build_model()
 

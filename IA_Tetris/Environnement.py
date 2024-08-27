@@ -128,6 +128,7 @@ class TetrisEnv() :
         states = {}
         piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
         rotations = []
+        avant_le_crash = True
 
         if piece_id == 3:
             rotations = [0]
