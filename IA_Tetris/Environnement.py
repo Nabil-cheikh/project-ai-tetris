@@ -173,7 +173,6 @@ class TetrisEnv() :
         rotation = action[1]
         current_x, current_y = current_piece
         final_x, final_y = action[0]
-        done = len(self.stack_actions) == 0
 
         if len(self.stack_actions) == 0:
             if rotation != 0:

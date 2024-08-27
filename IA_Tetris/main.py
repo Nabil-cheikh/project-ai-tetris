@@ -35,7 +35,6 @@ def main():
             total_reward = 0
             current_piece_id = TetrisInfos.get_tetromino_id(env.tetris.current_tetromino())
 
-
             while not done:
                 env.tetris.tick()
                 # Get the best action to take based on the current state
