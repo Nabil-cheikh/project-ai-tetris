@@ -125,7 +125,6 @@ def load_checkpoint(model):
             memory = pickle.load(f)
         with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'rb') as f:
             agent_state = pickle.load(f)
-
         print(PrintColor.cstr_with_arg(f"[Local] Loaded checkpoint at episode {agent_state['episode']} (memory size: {len(memory)}, epsilon: {agent_state['epsilon']}) from path: {path}", \
             'pure green', True))
         return memory, agent_state['epsilon'], agent_state['episode']

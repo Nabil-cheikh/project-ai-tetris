@@ -21,7 +21,7 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 SHOW_GAME_WINDOW = True
 GAME_SPEED = 1 # 0 > max speed
 SEED = 1
-NB_EPISODES = 100
+NB_EPISODES = 7000
 GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
@@ -31,7 +31,7 @@ PRINT_GAME_OVER_INFOS = True
 
 # Agent
 BATCH_SIZE = 32
-EPOCHS = 3
+EPOCHS = 5
 
 # Datas
 DATAS_STEP = 'Test' # 'Test' > replace csv / 'Prod' > add new datas to last csv
@@ -61,6 +61,6 @@ INPUTS = [
 
 MODEL_PATH = os.path.join('data', 'models')
 CHECKPOINT_PATH = os.path.join('data', 'checkpoints')
-USE_CHECKPOINT = False # Mettre à True après un crash durant l'entrainement
+USE_CHECKPOINT = True # Mettre à True après un crash durant l'entrainement
 CHECKPOINT_FREQUENCY = 10
 DATAS_STEP = 'Prod' # ou Test
