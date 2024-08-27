@@ -3,6 +3,8 @@ import random
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
+from IA_Tetris.registry import load_model
+from IA_Tetris.params import *
 import numpy as np
 
 class TetrisAgent:
@@ -20,7 +22,12 @@ class TetrisAgent:
         self.discount = discount
         self.state_size = 4
 
-        self.model = self._build_model()
+        if DATAS_STEP == 'Prod':
+            self.model, self.memory, self.epsilon = load_model()
+            if self.model == None:
+                self.model = self._build_model()
+        else:
+            self.model = self._build_model()
 
 
     def _build_model(self):

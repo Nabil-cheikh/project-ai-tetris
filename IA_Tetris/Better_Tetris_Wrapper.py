@@ -121,10 +121,8 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
                 # Fix to allow spamming down button when a new tetromino spawn
                 self.pyboy.button_release('down')
 
-        if not np.array_equal(self.current_tetromino_area, self.last_current_tetromino_area):
+        if self.env.frame_count % 2 == 0:
             self.env.execute_actions()
-            # if self.env.all_actions_done():
-            #     self.pyboy.button('down')
 
         # Update values
         self._last_spawner_area = self.spawner_area
