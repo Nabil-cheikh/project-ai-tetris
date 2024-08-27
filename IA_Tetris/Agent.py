@@ -3,7 +3,7 @@ import random
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
-from IA_Tetris.registry import load_model
+from IA_Tetris.registry import *
 from IA_Tetris.params import *
 import numpy as np
 
@@ -13,19 +13,24 @@ class TetrisAgent:
                  epsilon_decay=0.001, discount=0.95, replay_start_size=None):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
+        self.loaded_memory = self.memory
+        self.epsilon = epsilon
+        self.loaded_epsilon = self.epsilon
         if not replay_start_size:
             replay_start_size = mem_size / 2
         self.replay_start_size = replay_start_size
-        self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.discount = discount
         self.state_size = 4
 
         if DATAS_STEP == 'Prod':
-            self.model, self.memory, self.epsilon = load_model()
+            self.model, self.loaded_memory, self.loaded_epsilon = load_model()
             if self.model == None:
                 self.model = self._build_model()
+            else:
+                self.epsilon = self.loaded_epsilon
+                self.memory = self.loaded_memory
         else:
             self.model = self._build_model()
 

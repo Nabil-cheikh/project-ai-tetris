@@ -233,13 +233,22 @@ class TetrisInfos:
 
 class Datas:
     def update_datas(data, time, score, lines, rewards, nb_blocs, seed, inputs, path=CSV_PATH):
-        new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
-        data = data._append(new_datas, ignore_index=True)
-        data.to_csv(path)
+        if PLAY_MODE == 'Agent':
+            new_datas = {'Time':time, 'Score':score, 'Lines':lines, 'Rewards':rewards, 'NbBlocUsed':nb_blocs, 'Seed':seed, 'Inputs':inputs}
+            data = data._append(new_datas, ignore_index=True)
+            data.to_csv(path)
         return data
 
-    def get_dataframe():
+    def get_dataframe(path=CSV_PATH):
         if DATAS_STEP == 'Prod':
-            return pd.read_csv(CSV_PATH)
+            # Get current csv
+            try:
+                # If exist
+
+                df = pd.read_csv(path)
+            except FileNotFoundError:
+                # Else create new csv
+                df = pd.DataFrame(columns=COLUMN_NAMES)
+            return df
         else:
             return pd.DataFrame(columns=COLUMN_NAMES)

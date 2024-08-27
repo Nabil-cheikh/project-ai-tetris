@@ -197,7 +197,7 @@ class TetrisEnv() :
                 self.pyboy_env.button(self.stack_actions[0])
                 self.stack_actions.pop(0)
                 if len(self.stack_actions) == 0: # il y a des cas où il n'y a pas de "down" dans la liste d'actions "prédite"
-                    self.pyboy_env.button_press(self.stack_actions[0])
+                    self.pyboy_env.button_press('down')
 
     def all_actions_done(self):
         return len(self.stack_actions) == 0

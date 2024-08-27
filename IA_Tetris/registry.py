@@ -36,13 +36,13 @@ def load_model():
 
         if not paths:
             print(PrintColor.cstr_with_arg('No model to load', 'pure red', True))
-            return None
+            return (None, None, None)
 
         most_recent_model_path = sorted(paths)[-1]
-        with open(os.path.join(MODEL_PATH, as_file_name), 'rb') as f:
+        with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'rb') as f:
             agent_state = pickle.load(f)
 
-        print(PrintColor.cstr_with_arg(f'[Local] Loaded model (memory size: {len(agent_state['memory'])}, epsilon: {agent_state['epsilon']}) from path: {most_recent_model_path}', \
+        print(PrintColor.cstr_with_arg(f"[Local] Loaded model (memory size: {len(agent_state['memory'])}, epsilon: {agent_state['epsilon']}) from path: {most_recent_model_path}", \
             'pure green', True))
         return keras.models.load_model(most_recent_model_path), agent_state['memory'], agent_state['epsilon']
 
@@ -63,7 +63,7 @@ def load_model():
             with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'rb') as f:
                 agent_state = pickle.load(f)
 
-            print(PrintColor.cstr_with_arg(f'[GCS] Loaded model (memory size: {len(agent_state['memory'])}, epsilon: {agent_state['epsilon']}) from bucket: {BUCKET_NAME}', \
+            print(PrintColor.cstr_with_arg(f"[GCS] Loaded model (memory size: {len(agent_state['memory'])}, epsilon: {agent_state['epsilon']}) from bucket: {BUCKET_NAME}", \
                 'pure green', True))
             return keras.models.load_model(latest_model_path_to_save), agent_state['memory'], agent_state['epsilon']
         except:
@@ -84,7 +84,7 @@ def save_checkpoint(model, memory, epsilon, episode, name):
     as_file_name = 'agent_state.pkl'
     with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'wb') as f:
         pickle.dump(agent_state, f)
-    print(PrintColor.cstr_with_arg(f'[Local] Saved checkpoint for episode {episode} (memory size: {len(memory)}, epsilon: {epsilon}) at path: {path}', \
+    print(PrintColor.cstr_with_arg(f"[Local] Saved checkpoint for episode {episode} (memory size: {len(memory)}, epsilon: {epsilon}) at path: {path}", \
         'pure green', True))
 
     if MODEL_TARGET == 'gcs':

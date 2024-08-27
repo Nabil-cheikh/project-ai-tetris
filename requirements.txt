@@ -3,6 +3,8 @@ numpy==1.26.4
 pandas==2.2.2
 matplotlib==3.9.2
 matplotlib-inline==0.1.7
+google-cloud-core==2.4.1
+google-cloud-storage==2.18.2
 # Trick to install the version of Tensorflow
 tensorflow-macos==2.16.2; sys_platform == 'darwin' and 'ARM' in platform_version # Mac M-chips
 tensorflow==2.17.0; sys_platform == 'darwin' and 'ARM' not in platform_version # Mac Intel chips
