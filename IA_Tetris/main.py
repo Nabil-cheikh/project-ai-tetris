@@ -1,4 +1,5 @@
 import random
+import random
 from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
@@ -54,6 +55,12 @@ def main():
                 # Take the action and observe the new state and reward
                 curr_piece_position = env.actions(best_action, curr_piece_position, rotation_done)
 
+                lines, total_bumpiness, holes, sum_height = next_states[best_action]
+                reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
+                # Add the experience to the agent's memory
+                agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                # Update the current state
+                current_state = next_states[best_action]
                 lines, total_bumpiness, holes, sum_height = next_states[best_action]
                 reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
                 # Add the experience to the agent's memory
