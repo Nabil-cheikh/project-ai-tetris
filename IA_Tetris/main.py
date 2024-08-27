@@ -2,6 +2,7 @@ from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
 from IA_Tetris.utils import TetrisInfos
+from IA_Tetris.registry import save_checkpoint, save_model, load_checkpoint
 
 def main():
     env = TetrisEnv()
@@ -10,11 +11,15 @@ def main():
                         epsilon_decay=0.001, discount=0.95)
     # agent.state_size = state_size  # Set the state size in the agent
 
+    start_episode = 0
+    if USE_CHECKPOINT:
+        agent.memory, agent.epsilon, start_episode = load_checkpoint(agent.model)
+
     if PLAY_MODE == 'Agent':
 
         env.tetris.start_game(timer_div=env.seed)
 
-        for episode in range(NB_EPISODES):
+        for episode in range(start_episode, NB_EPISODES):
             # Reset environment and get the initial state
             env.reset()
             current_state = env.state()
@@ -68,7 +73,10 @@ def main():
             # Train the agent after every episode
             agent.train(batch_size=BATCH_SIZE, epochs=EPOCHS)
 
+            if episode % CHECKPOINT_FREQUENCY == 0:
+                save_checkpoint(agent.model, agent.memory, agent.epsilon, episode, 'model.weights')
 
+        save_model(agent.model, agent.memory, agent.epsilon, 'model', True)
         # Close the environment after training
         env.close()
 
