@@ -45,15 +45,17 @@ def main():
                         if best_state == state:
                             best_action = action
                             break
+                    if len(next_states) == 0:
+                        env.get_results()
+                        break
 
                     current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
                     curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
                     # Take the action and observe the new state and reward
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
-                if env.tetris.is_new_tetromino():
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
+                    reward = env.score_rewards() + (1+lines) ** 2
                     # Add the experience to the agent's memory
                     agent.add_to_memory(current_state, next_states[best_action], reward, done)
                     # Update the current state
@@ -62,7 +64,7 @@ def main():
                 done = env.game_over()
                 # If done, print the score
                 if done:
-                    # print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
+                    print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
                     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
                     # print(f'Epsilon: {agent.epsilon}')
                     env.get_results()

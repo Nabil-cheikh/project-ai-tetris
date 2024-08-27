@@ -316,7 +316,7 @@ class TetrisEnv() :
     #     return reward
 
     def get_rewards(self):
-        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return self.score_rewards() #+ self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
         self.stack_actions = []

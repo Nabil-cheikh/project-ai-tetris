@@ -41,7 +41,7 @@ class TetrisAgent:
         model.add(Dense(units=64, input_dim=self.state_size, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
-        model.add(Dense(self.action_size, activation="linear"))
+        model.add(Dense(1, activation="linear"))
         model.compile(loss="mse", optimizer=Adam(learning_rate=0.001))
 
         return model
@@ -62,7 +62,10 @@ class TetrisAgent:
         best_state = None
 
         if random.random() <= self.epsilon:
-            return random.choice(list(states))
+            if not states:
+                return ((0, 0), 0)
+            else :
+                return random.choice(list(states))
 
         else:
             for state in states:
@@ -85,7 +88,6 @@ class TetrisAgent:
             print("train")
 
             batch = random.sample(self.memory, batch_size)
-
             # Get the expected score for the next states, in batch (better performance)
 
             next_states = np.array([x[1] for x in batch])
@@ -102,8 +104,10 @@ class TetrisAgent:
                 else:
                     new_q = reward
 
+
                 x.append(state)
                 y.append(new_q)
+
 
             # Fit the model to the given values
             self.model.fit(np.array(x), np.array(y), batch_size=batch_size, epochs=epochs, verbose=0)
