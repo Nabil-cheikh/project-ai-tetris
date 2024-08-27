@@ -51,7 +51,6 @@ def main():
                     # Take the action and observe the new state and reward
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
-                if env.tetris.is_new_tetromino():
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
                     reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
                     # Add the experience to the agent's memory
