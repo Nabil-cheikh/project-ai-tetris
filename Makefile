@@ -1,5 +1,8 @@
-create_directories:
+clean:
+	@rm -rf ./data/checkpoints/
+	@rm -rf ./data/csv/
+	@rm -rf ./data/models/
 	@mkdir -p data/checkpoints/ data/csv/ data/models/
 
 run:
-	@python IA_Tetris/main.py
+	@python -m IA_Tetris.main.py
