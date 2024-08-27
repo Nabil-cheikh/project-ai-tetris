@@ -58,3 +58,9 @@ INPUTS = [
     'down',
     'a'
 ]
+
+MODEL_PATH = os.path.join('data', 'models')
+CHECKPOINT_PATH = os.path.join('data', 'checkpoints')
+USE_CHECKPOINT = False # Mettre à True après un crash durant l'entrainement
+CHECKPOINT_FREQUENCY = 10
+DATAS_STEP = 'Prod' # ou Test
