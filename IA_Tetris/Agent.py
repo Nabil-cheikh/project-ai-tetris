@@ -62,10 +62,7 @@ class TetrisAgent:
         best_state = None
 
         if random.random() <= self.epsilon:
-            if not states:
-                return ((0, 0), 0)
-            else :
-                return random.choice(list(states))
+            return random.choice(list(states))
 
         else:
             for state in states:
