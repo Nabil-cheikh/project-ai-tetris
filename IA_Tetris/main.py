@@ -1,3 +1,4 @@
+import random
 from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
@@ -39,36 +40,49 @@ def main():
                 if env.tetris.is_new_tetromino():
                     env.stack_actions = []
                     next_states = env.get_next_states()
-                    best_state = agent.best_state(next_states.values())
-                    rotation_done=False
-                    for action, state in next_states.items():
-                        if best_state == state:
-                            best_action = action
+                    if len(next_states) != 0:
+                        best_state = agent.best_state(next_states.values())
+                        rotation_done=False
+                        for action, state in next_states.items():
+                            if best_state == state:
+                                best_action = action
+                                break
+
+
+                        current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
+                        curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
+                        # Take the action and observe the new state and reward
+                        curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
+
+                        lines, total_bumpiness, holes, sum_height = next_states[best_action]
+                        reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
+                        # Add the experience to the agent's memory
+                        agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                        # Update the current state
+                        current_state = next_states[best_action]
+
+                        done = env.game_over()
+                        print(done)
+                        if done:
+                            # print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
+                            # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
+                            # print(f'Epsilon: {agent.epsilon}')
+                            print("je passe dans le if done")
+                            env.get_results()
                             break
-
-                    current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
-                    curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
-                    # Take the action and observe the new state and reward
-                    curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
-
-                if env.tetris.is_new_tetromino():
-                    lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
-                    # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
-                    # Update the current state
-                    current_state = next_states[best_action]
-
-                done = env.game_over()
+                    else:
+                        print("je passe dans le else")
+                        env.get_results()
+                        break
                 # If done, print the score
-                if done:
-                    # print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
-                    # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
-                    # print(f'Epsilon: {agent.epsilon}')
-                    env.get_results()
-                    # TODO: Sauvegarder le modèle
-                    # TODO: Faire des checkpoints
-                    break
+                # if done:
+                #     # print(f"Episode: {episode + 1}/{NB_EPISODES}, Score: {env.get_rewards}")
+                #     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
+                #     # print(f'Epsilon: {agent.epsilon}')
+                #     env.get_results()
+                #     # TODO: Sauvegarder le modèle
+                #     # TODO: Faire des checkpoints
+                #     break
 
             # Train the agent after every episode
             agent.train(batch_size=BATCH_SIZE, epochs=EPOCHS)
