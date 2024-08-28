@@ -80,7 +80,7 @@ class TetrisAgent:
     def train(self, batch_size=246, epochs=3):
         '''Trains the agent'''
         n = len(self.memory)
-        print("taille de la mémoire", n)
+        #print("taille de la mémoire", n)
 
         # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:

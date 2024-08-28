@@ -33,6 +33,7 @@ PRINT_GAME_OVER_AREA = True
 # Agent
 BATCH_SIZE = 320
 EPOCHS = 10
+MEMORY_MAX_SIZE = 20000
 
 # Datas
 DATAS_STEP = 'prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv

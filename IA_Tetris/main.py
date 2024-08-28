@@ -7,7 +7,7 @@ from IA_Tetris.registry import *
 def main():
     env = TetrisEnv()
     # state_size = env.game_area().shape[0] * env.game_area_only().shape[1]  # Adjust based on your state representation
-    agent = TetrisAgent(mem_size=20000, discount=0.95)
+    agent = TetrisAgent(mem_size=MEMORY_MAX_SIZE, discount=0.95)
     # agent.state_size = state_size  # Set the state size in the agent
 
     start_episode = 0
@@ -71,10 +71,9 @@ def main():
                 done = env.game_over()
                 # If done, print the score
                 if done:
-                    print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
-                    # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
-                    # print(f'Epsilon: {agent.epsilon}')
+                    print(f"Episode: {episode + 1}/{NB_EPISODES}")
                     env.get_results()
+                    print(f'  Agent:\n   -Memory: {len(agent.memory)}/{agent.memory.maxlen}\n   -Epsilon: {round(agent.epsilon, 2)}/1')
 
                     if PRINT_GAME_OVER_AREA:
                         print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(env.tetris._current_tetromino)}')
