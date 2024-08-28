@@ -31,6 +31,7 @@ def main():
             done = False
             best_action = None
             is_action_finished = True
+            total_reward = 0
             current_piece_id = TetrisInfos.get_tetromino_id(env.tetris.current_tetromino())
 
 
@@ -57,10 +58,13 @@ def main():
                     # Take the action and observe the new state and reward
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
-                    lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines*100) ** 2 + env.hole_rewards() + env.bumpiness_rewards()
+                    lines, total_bumpiness, holes, max_height, total_tetrominos = next_states[best_action]
+                    reward = env.score_rewards() + (1+lines) ** 2 + total_tetrominos
+                    penalty = (total_bumpiness + holes + max_height)*2
+                    total_reward = reward - penalty
+
                     # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                    agent.add_to_memory(current_state, next_states[best_action], total_reward, done)
                     # Update the current state
                     current_state = next_states[best_action]
 
@@ -73,8 +77,8 @@ def main():
                     print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
                     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
                     # print(f'Epsilon: {agent.epsilon}')
-                    print(f'-------------REWARD : {reward}--------------')
-                    env.get_results()
+                    print("if done", total_reward)
+                    env.get_results(total_reward)
                     # TODO: Sauvegarder le modèle
                     # TODO: Faire des checkpoints
                     break

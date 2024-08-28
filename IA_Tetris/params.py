@@ -18,10 +18,10 @@ BQ_REGION = os.environ.get('BQ_REGION')
 BQ_DATASET = os.environ.get('BQ_DATASET')
 
 # Game
-SHOW_GAME_WINDOW = True
-GAME_SPEED = 9 # 0 > max speed
+SHOW_GAME_WINDOW = False
+GAME_SPEED = 0 # 0 > max speed
 SEED = 1
-NB_EPISODES = 6000
+NB_EPISODES = 3000
 GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
@@ -30,11 +30,11 @@ PRINT_GAME_AREAS = False
 PRINT_GAME_OVER_INFOS = True
 
 # Agent
-BATCH_SIZE = 320
-EPOCHS = 10
+BATCH_SIZE = 512
+EPOCHS = 3
 
 # Datas
-DATAS_STEP = 'prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv
+DATAS_STEP = 'Prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
