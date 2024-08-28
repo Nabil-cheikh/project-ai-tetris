@@ -59,6 +59,7 @@ def main():
 
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
                     reward = env.score_rewards() + (1+lines*100) ** 2 + env.hole_rewards() + env.bumpiness_rewards()
+                    env.total_rewards += reward
                     # Add the experience to the agent's memory
                     agent.add_to_memory(current_state, next_states[best_action], reward, done)
                     # Update the current state
@@ -73,10 +74,12 @@ def main():
                     print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
                     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
                     # print(f'Epsilon: {agent.epsilon}')
-                    print(f'-------------REWARD : {reward}--------------')
                     env.get_results()
-                    # TODO: Sauvegarder le modèle
-                    # TODO: Faire des checkpoints
+
+                    if PRINT_GAME_OVER_AREA:
+                        print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(env.tetris._current_tetromino)}')
+                        print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(env.tetris.next_tetromino())}')
+                        print(TetrisInfos.better_game_area(env.tetris.game_area()))
                     break
 
             # Train the agent after every episode

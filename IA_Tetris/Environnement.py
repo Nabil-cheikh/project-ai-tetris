@@ -33,6 +33,7 @@ class TetrisEnv() :
         self.seed = np.random.randint(0, sys.maxsize) if SEED == None else SEED # Si SEED == None, on génère une seed random qu'on peut stocker pour la sauvegarder dans le csv
         self.inputs = []
         self.stack_actions = []
+        self.total_rewards = 0
 
         # /!\ ##########################################
         # METTRE À FALSE QUAND ON COMMENCERA À AVOIR DE VRAIES DONNÉES
@@ -289,7 +290,7 @@ class TetrisEnv() :
             subtraction_result = abs(column_heights[i + 1] - column_heights[i])
             rewards += subtraction_result
 
-        return rewards * (-20)
+        return rewards * (-2)
 
     def heigh_rewards(self):
         rewards = 0
@@ -320,7 +321,7 @@ class TetrisEnv() :
                 if not found_tetromino and game_area[x, y] != 0:
                     found_tetromino = True
 
-        rewards = hole * (-20)
+        rewards = hole * (-2)
         return rewards
 
     # def frame_rewards(self):
@@ -331,10 +332,11 @@ class TetrisEnv() :
     #     return reward
 
     def get_rewards(self):
-        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return self.total_rewards
 
     def reset(self):
         self.stack_actions = []
+        self.total_rewards = 0
         self.tetris.reset_game(self.seed)
 
     def close(self):

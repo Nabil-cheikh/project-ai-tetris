@@ -28,6 +28,7 @@ PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 # Prints debug infos
 PRINT_GAME_AREAS = False
 PRINT_GAME_OVER_INFOS = True
+PRINT_GAME_OVER_AREA = True
 
 # Agent
 BATCH_SIZE = 320
