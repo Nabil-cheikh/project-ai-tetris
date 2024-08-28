@@ -75,7 +75,7 @@ def main():
                     print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
                     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
                     # print(f'Epsilon: {agent.epsilon}')
-                    print(f'-------------REWARD : {reward}--------------')
+                    print(f'-------------REWARD : {total_reward}--------------')
                     env.get_results(total_reward)
                     # TODO: Sauvegarder le modèle
                     # TODO: Faire des checkpoints
