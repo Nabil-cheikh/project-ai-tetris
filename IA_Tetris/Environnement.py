@@ -99,7 +99,7 @@ class TetrisEnv() :
         lines, board = self._clear_lines(board)
         total_bumpiness = self._bumpiness(board)
         holes = self._number_of_holes(board)
-        sum_height, max_height = self._height(board)
+        max_height = self._height(board)
 
         return [lines, total_bumpiness, holes, max_height, self.tetris.total_tetromino_used]
 
