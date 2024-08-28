@@ -22,7 +22,7 @@ class TetrisAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = (self.epsilon - self.epsilon_min) / 500
         self.discount = discount
-        self.state_size = 4
+        self.state_size = 5
 
         if DATAS_STEP == 'Prod':
             self.model, self.loaded_memory, self.loaded_epsilon = load_model()
@@ -77,14 +77,15 @@ class TetrisAgent:
         return best_state
 
 
-    def train(self, batch_size=246, epochs=3):
+    def train(self, batch_size=512, epochs=3):
         '''Trains the agent'''
         n = len(self.memory)
         print("taille de la mémoire", n)
 
         # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:
-            print("train")
+            print("Epsilon : ", self.epsilon)
+            print("-------------------------")
 
             batch = random.sample(self.memory, batch_size)
             # Get the expected score for the next states, in batch (better performance)

@@ -75,10 +75,12 @@ class TetrisEnv() :
                 if NB_EPISODES > 0:
                     break # Coupe la boucle while pour passer à l'épisode suivant
 
-    def get_results(self):
+    def get_results(self, reward=None):
+        if reward == None:
+            reward = self.get_rewards()
         TetrisEnv.df = TetrisInfos.game_over(data=TetrisEnv.df,
                                                 play_time=self.tetris.play_time,
-                                                reward=self.get_rewards(),
+                                                reward=reward,
                                                 score=self.tetris.score,
                                                 lines=self.tetris.lines,
                                                 nb_tetrominos_used=self.tetris.total_tetromino_used,
@@ -97,9 +99,9 @@ class TetrisEnv() :
         lines, board = self._clear_lines(board)
         total_bumpiness = self._bumpiness(board)
         holes = self._number_of_holes(board)
-        sum_height = self._height(board)
+        sum_height, max_height = self._height(board)
 
-        return [lines, total_bumpiness, holes, sum_height]
+        return [lines, total_bumpiness, holes, max_height, self.tetris.total_tetromino_used]
 
     def _check_collision(self, piece, next_pos):
         '''Check if there is a collision between the current piece and the board'''
@@ -253,6 +255,7 @@ class TetrisEnv() :
     def _height(self, board):
         '''Sum and maximum height of the board'''
         sum_height = 0
+        max_height = 0
 
         for col in zip(*board):
             i = 0
@@ -260,8 +263,10 @@ class TetrisEnv() :
                 i += 1
             height = BOARD_HEIGHT - i
             sum_height += height
+            if height > max_height:
+                max_height = height
 
-        return sum_height
+        return sum_height, max_height
 
 
     def bumpiness_rewards(self):
