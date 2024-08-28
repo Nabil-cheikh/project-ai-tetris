@@ -7,7 +7,7 @@ from IA_Tetris.registry import *
 def main():
     env = TetrisEnv()
     # state_size = env.game_area().shape[0] * env.game_area_only().shape[1]  # Adjust based on your state representation
-    agent = TetrisAgent(mem_size=10000, discount=0.95)
+    agent = TetrisAgent(mem_size=20000, discount=0.95)
     # agent.state_size = state_size  # Set the state size in the agent
 
     start_episode = 0
@@ -58,7 +58,7 @@ def main():
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines) ** 2
+                    reward = env.score_rewards() + (1+lines*100) ** 2 + env.hole_rewards() + env.bumpiness_rewards()
                     # Add the experience to the agent's memory
                     agent.add_to_memory(current_state, next_states[best_action], reward, done)
                     # Update the current state
@@ -73,6 +73,7 @@ def main():
                     print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
                     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
                     # print(f'Epsilon: {agent.epsilon}')
+                    print(f'-------------REWARD : {reward}--------------')
                     env.get_results()
                     # TODO: Sauvegarder le modèle
                     # TODO: Faire des checkpoints

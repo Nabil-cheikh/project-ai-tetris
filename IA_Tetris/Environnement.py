@@ -253,6 +253,7 @@ class TetrisEnv() :
     def _height(self, board):
         '''Sum and maximum height of the board'''
         sum_height = 0
+        max_height = 0
 
         for col in zip(*board):
             i = 0
@@ -260,8 +261,10 @@ class TetrisEnv() :
                 i += 1
             height = BOARD_HEIGHT - i
             sum_height += height
+            if height > max_height:
+                max_height = height
 
-        return sum_height
+        return max_height
 
 
     def bumpiness_rewards(self):
@@ -281,7 +284,7 @@ class TetrisEnv() :
             subtraction_result = abs(column_heights[i + 1] - column_heights[i])
             rewards += subtraction_result
 
-        return rewards * (-1)
+        return rewards * (-20)
 
     def heigh_rewards(self):
         rewards = 0
@@ -299,17 +302,19 @@ class TetrisEnv() :
         rewards = self.tetris.score*1
         return rewards
 
-    def hole_rewards(self):
-        rows, cols = self.tetris.game_area().shape
+    def hole_rewards(game_area):
+        rows, cols = game_area.shape
         hole = 0
 
-        for i in range(rows):
-            for j in range(cols):
-                if self.tetris.game_area()[i, j] == 0:
-                    if i < rows - 1 and self.tetris.game_area()[i + 1, j] != 0:
-                        hole += 1
+        for y in range(cols):
+            found_tetromino = False
+            for x in range(rows):
+                if found_tetromino and game_area[x, y] == 0:
+                    hole += 1
+                if not found_tetromino and game_area[x, y] != 0:
+                    found_tetromino = True
 
-        rewards = hole * (-1000)
+        rewards = hole * (-20)
         return rewards
 
     # def frame_rewards(self):
@@ -320,7 +325,7 @@ class TetrisEnv() :
     #     return reward
 
     def get_rewards(self):
-        return self.score_rewards() #+ self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
+        return self.score_rewards() + self.lines_rewards() + self.hole_rewards() + self.heigh_rewards() + self.bumpiness_rewards()
 
     def reset(self):
         self.stack_actions = []

@@ -9,7 +9,7 @@ import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, mem_size=10000, epsilon=1.0, epsilon_min=0,
+    def __init__(self, mem_size=20000, epsilon=1.0, epsilon_min=0.2,
                   discount=0.95, replay_start_size=None):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
@@ -18,9 +18,9 @@ class TetrisAgent:
         self.loaded_epsilon = self.epsilon
         if not replay_start_size:
             replay_start_size = mem_size / 2
-        self.replay_start_size = replay_start_size
+        self.replay_start_size = 5000
         self.epsilon_min = epsilon_min
-        self.epsilon_decay = (self.epsilon - self.epsilon_min) / 500
+        self.epsilon_decay = (self.epsilon - self.epsilon_min) / NB_EPISODES
         self.discount = discount
         self.state_size = 4
 
