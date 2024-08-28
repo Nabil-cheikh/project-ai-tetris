@@ -139,10 +139,11 @@ class TetrisEnv() :
             min_x = min(p[0] for p in piece)
             max_x = max(p[0] for p in piece)
 
+            # print("positions possibles")
+            # print(BOARD_WIDTH - (max_x-min_x))
             # for all positions in the width
-            for x in range(0, BOARD_WIDTH - (max_x-min_x)):
+            for x in range(-min_x, BOARD_WIDTH - max_x):
                 next_pos = [x, 0]
-
                 # Drop piece
                 while not self._check_collision(piece, next_pos):
                     next_pos[1] +=1
@@ -152,6 +153,9 @@ class TetrisEnv() :
                 if next_pos[1] >= 0:
                     new_board = self._add_piece_to_board(piece, piece_id, next_pos)
                     states[(tuple(next_pos), rotation)] = self.state(new_board)
+
+            # print("positions possibles après le check collisions")
+            # print(len(states))
 
         return states
 
@@ -173,7 +177,7 @@ class TetrisEnv() :
                 for _ in range(int(rotation / 90)):
                     self.stack_actions.append('a')
             if current_x != final_x:
-                diff_x = final_x - current_x
+                diff_x = final_x
                 if diff_x > 0:
                     for _ in range(diff_x):
                         self.stack_actions.append('right')

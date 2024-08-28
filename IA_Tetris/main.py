@@ -7,8 +7,7 @@ from IA_Tetris.registry import *
 def main():
     env = TetrisEnv()
     # state_size = env.game_area().shape[0] * env.game_area_only().shape[1]  # Adjust based on your state representation
-    agent = TetrisAgent(mem_size=10000, epsilon=1.0, epsilon_min=0.01,
-                        epsilon_decay=0.001, discount=0.95)
+    agent = TetrisAgent(mem_size=10000, discount=0.95)
     # agent.state_size = state_size  # Set the state size in the agent
 
     start_episode = 0

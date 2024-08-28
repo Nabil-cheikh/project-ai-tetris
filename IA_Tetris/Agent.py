@@ -9,8 +9,8 @@ import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, mem_size=10000, epsilon=1.0, epsilon_min=0.01,
-                 epsilon_decay=0.001, discount=0.95, replay_start_size=None):
+    def __init__(self, mem_size=10000, epsilon=1.0, epsilon_min=0,
+                  discount=0.95, replay_start_size=None):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
         self.loaded_memory = self.memory
@@ -20,7 +20,7 @@ class TetrisAgent:
             replay_start_size = mem_size / 2
         self.replay_start_size = replay_start_size
         self.epsilon_min = epsilon_min
-        self.epsilon_decay = epsilon_decay
+        self.epsilon_decay = (self.epsilon - self.epsilon_min) / 500
         self.discount = discount
         self.state_size = 4
 
@@ -77,7 +77,7 @@ class TetrisAgent:
         return best_state
 
 
-    def train(self, batch_size=32, epochs=3):
+    def train(self, batch_size=246, epochs=3):
         '''Trains the agent'''
         n = len(self.memory)
         print("taille de la mémoire", n)
