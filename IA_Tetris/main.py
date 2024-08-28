@@ -65,17 +65,17 @@ def main():
                     # Update the current state
                     current_state = next_states[best_action]
 
-                    if env.tetris.frames_until_tetro_spawn % 2 == 1: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
-                        env.execute_actions()
+                if env.tetris.frames_until_tetro_spawn % 2 == 1: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
+                    env.execute_actions()
 
-                    done = env.game_over()
+                done = env.game_over()
 
-                    if done:
-                        print(f"Episode: {episode + 1}/{NB_EPISODES}")
-                        # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
-                        # print(f'Epsilon: {agent.epsilon}')
-                        env.get_results(total_reward)
-                        break
+                if done:
+                    print(f"Episode: {episode + 1}/{NB_EPISODES}")
+                    # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
+                    # print(f'Epsilon: {agent.epsilon}')
+                    env.get_results(total_reward)
+                    break
 
 
             # Train the agent after every episode
