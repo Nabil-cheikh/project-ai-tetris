@@ -75,10 +75,12 @@ class TetrisEnv() :
                 if NB_EPISODES > 0:
                     break # Coupe la boucle while pour passer à l'épisode suivant
 
-    def get_results(self):
+    def get_results(self, reward=None):
+        if reward == None:
+            reward = self.get_rewards()
         TetrisEnv.df = TetrisInfos.game_over(data=TetrisEnv.df,
                                                 play_time=self.tetris.play_time,
-                                                reward=self.get_rewards(),
+                                                reward=reward,
                                                 score=self.tetris.score,
                                                 lines=self.tetris.lines,
                                                 nb_tetrominos_used=self.tetris.total_tetromino_used,
