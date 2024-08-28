@@ -62,7 +62,7 @@ def main():
                     penalty = (total_bumpiness+holes+sum_height)*2
                     total_reward = reward-penalty
                     # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                    agent.add_to_memory(current_state, next_states[best_action], total_reward, done)
                     # Update the current state
                     current_state = next_states[best_action]
 
