@@ -26,6 +26,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.score = 0
         self.lines = 0
         self.level = 0
+        self.frames_until_tetro_spawn = 0
 
     def game_area_mapping(self):
         self.tetris.game_area_mapping(self.tetris.mapping_compressed, 0)
@@ -77,6 +78,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.score = 0
         self.lines = 0
         self.level = 0
+        self.frames_until_tetro_spawn = 0
 
     def set_new_tetromino(self, is_new):
         if is_new:
@@ -96,6 +98,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         self.lines = self.tetris.lines
         self.level = self.tetris.level
         self.env.frame_increment()
+        self.frames_until_tetro_spawn += 1
 
         # Time and FPS
         self.delta_time = time.time() - self._last_time_fps
@@ -112,6 +115,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
             self.set_game_area_only()
             self.set_new_tetromino(True)
             self.set_current_tetromino(current_tetromino)
+            self.frames_until_tetro_spawn = 0
 
             if PRINT_GAME_AREAS:
                 print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(self._current_tetromino)}')

@@ -1,3 +1,6 @@
+install:
+	@pip install -e .
+
 clear_directories:
 	@mkdir -p data/checkpoints/ data/csv/ data/models/
 

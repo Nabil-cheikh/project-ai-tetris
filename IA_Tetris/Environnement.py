@@ -189,9 +189,12 @@ class TetrisEnv() :
                 for _ in range(diff_y):
                     self.stack_actions.append('down')
 
+        if len(self.stack_actions) == 0:
+            self.execute_actions(True)
+
         return (current_x, current_y), done
 
-    def execute_actions(self):
+    def execute_actions(self, force_down=False):
         if len(self.stack_actions) > 0:
             # print('stack inputs: ', self.stack_actions)
             if self.stack_actions[0] == 'down':
@@ -201,7 +204,9 @@ class TetrisEnv() :
                 self.pyboy_env.button(self.stack_actions[0])
                 self.stack_actions.pop(0)
                 if len(self.stack_actions) == 0: # il y a des cas où il n'y a pas de "down" dans la liste d'actions "prédite"
-                    self.pyboy_env.button_press('down')
+                    self.stack_actions.append('down')
+        if force_down:
+            self.stack_actions.append('down')
 
     def all_actions_done(self):
         return len(self.stack_actions) == 0
@@ -302,7 +307,8 @@ class TetrisEnv() :
         rewards = self.tetris.score*1
         return rewards
 
-    def hole_rewards(game_area):
+    def hole_rewards(self):
+        game_area = self.tetris.game_area()
         rows, cols = game_area.shape
         hole = 0
 

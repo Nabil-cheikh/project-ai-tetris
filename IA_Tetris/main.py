@@ -64,7 +64,7 @@ def main():
                     # Update the current state
                     current_state = next_states[best_action]
 
-                if env.frame_count % 2 == 0: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
+                if env.tetris.frames_until_tetro_spawn % 2 == 1: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
                     env.execute_actions()
 
                 done = env.game_over()
