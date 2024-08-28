@@ -20,7 +20,7 @@ class TetrisAgent:
             replay_start_size = mem_size / 2
         self.replay_start_size = 5000
         self.epsilon_min = epsilon_min
-        self.epsilon_decay = (self.epsilon - self.epsilon_min) / NB_EPISODES
+        self.epsilon_decay = (self.epsilon - self.epsilon_min) / 500
         self.discount = discount
         self.state_size = 4
 
