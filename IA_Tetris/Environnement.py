@@ -128,6 +128,7 @@ class TetrisEnv() :
         states = {}
         piece_id = TetrisInfos.get_tetromino_id(self.tetris.current_tetromino())
         rotations = []
+        avant_le_crash = True
 
         if piece_id == 3:
             rotations = [0]
@@ -172,7 +173,6 @@ class TetrisEnv() :
         rotation = action[1]
         current_x, current_y = current_piece
         final_x, final_y = action[0]
-        done = len(self.stack_actions) == 0
 
         if len(self.stack_actions) == 0:
             if rotation != 0:
@@ -191,7 +191,7 @@ class TetrisEnv() :
                 for _ in range(diff_y):
                     self.stack_actions.append('down')
 
-        return (current_x, current_y), done
+        return (current_x, current_y)
 
     def execute_actions(self):
         if len(self.stack_actions) > 0:

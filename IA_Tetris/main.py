@@ -1,3 +1,5 @@
+import random
+import random
 from IA_Tetris.params import *
 from IA_Tetris.Agent import TetrisAgent
 from IA_Tetris.Environnement import TetrisEnv
@@ -34,7 +36,6 @@ def main():
             total_reward = 0
             current_piece_id = TetrisInfos.get_tetromino_id(env.tetris.current_tetromino())
 
-
             while not done:
                 env.tetris.tick()
                 # Get the best action to take based on the current state
@@ -43,36 +44,39 @@ def main():
                 if env.tetris.is_new_tetromino():
                     env.stack_actions = []
                     next_states = env.get_next_states()
-                    best_state = agent.best_state(next_states.values())
-                    rotation_done=False
-                    for action, state in next_states.items():
-                        if best_state == state:
-                            best_action = action
-                            break
-                    if len(next_states) == 0:
+                    if len(next_states) != 0:
+                        best_state = agent.best_state(next_states.values())
+                        rotation_done=False
+                        for action, state in next_states.items():
+                            if best_state == state:
+                                best_action = action
+                                break
+                    else:
                         env.get_results()
                         break
 
-                    current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
-                    curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
-                    # Take the action and observe the new state and reward
-                    curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
+                current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
+                curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
+                # Take the action and observe the new state and reward
+                curr_piece_position = env.actions(best_action, curr_piece_position, rotation_done)
 
-                    lines, total_bumpiness, holes, max_height, total_tetrominos = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines) ** 2 + total_tetrominos
-                    penalty = (total_bumpiness + holes + max_height)*2
-                    total_reward = reward - penalty
-
-                    # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], total_reward, done)
-                    # Update the current state
-                    current_state = next_states[best_action]
+                lines, total_bumpiness, holes, sum_height = next_states[best_action]
+                reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
+                # Add the experience to the agent's memory
+                agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                # Update the current state
+                current_state = next_states[best_action]
+                lines, total_bumpiness, holes, sum_height = next_states[best_action]
+                reward = env.score_rewards() + (1+lines) ** 2 - (total_bumpiness+holes+sum_height)
+                # Add the experience to the agent's memory
+                agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                # Update the current state
+                current_state = next_states[best_action]
 
                 if env.frame_count % 2 == 0: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
                     env.execute_actions()
 
                 done = env.game_over()
-                # If done, print the score
                 if done:
                     print(f"Episode: {episode + 1}/{NB_EPISODES}") #, Score: {env.get_rewards}")
                     # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
