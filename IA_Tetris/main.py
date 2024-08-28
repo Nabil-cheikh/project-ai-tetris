@@ -51,10 +51,6 @@ def main():
                         env.get_results()
                         break
 
-
-                    if env.tetris.frames_until_tetro_spawn % 2 == 1: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
-                        env.execute_actions()
-
                     current_piece_positions = TetrisInfos.TETROMINOS[current_piece_id][best_action[1]]
                     curr_piece_position = sorted(current_piece_positions, key=lambda pos: (pos[0], -pos[1]))[0]
                     # Take the action and observe the new state and reward
@@ -69,8 +65,11 @@ def main():
                     # Update the current state
                     current_state = next_states[best_action]
 
+                    if env.tetris.frames_until_tetro_spawn % 2 == 1: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
+                        env.execute_actions()
+
                     done = env.game_over()
-                    print(done)
+
                     if done:
                         print(f"Episode: {episode + 1}/{NB_EPISODES}")
                         # print(f'Rewards: \n  Bumpiness: {env.bumpiness_rewards()}\n  Holes: {env.hole_rewards()}\n  Height: {env.heigh_rewards()}\n  Score: {env.score_rewards()}\n  Lines: {env.lines_rewards()}')
