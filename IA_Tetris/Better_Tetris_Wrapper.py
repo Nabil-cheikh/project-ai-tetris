@@ -91,6 +91,7 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
     def tick(self, count=1, render=True) -> bool:
         tick = self.pyboy.tick(count, render)
 
+        # Get values
         self.score = self.tetris.score
         self.lines = self.tetris.lines
         self.level = self.tetris.level
@@ -111,18 +112,15 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
             self.set_game_area_only()
             self.set_new_tetromino(True)
             self.set_current_tetromino(current_tetromino)
+
             if PRINT_GAME_AREAS:
                 print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(self._current_tetromino)}')
                 print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(self.next_tetromino())}')
                 print(TetrisInfos.better_game_area(self.game_area()))
 
-
             if PLAY_MODE == 'Random' or PLAY_MODE == 'Agent':
                 # Fix to allow spamming down button when a new tetromino spawn
                 self.pyboy.button_release('down')
-
-        if self.env.frame_count % 2 == 0:
-            self.env.execute_actions()
 
         # Update values
         self._last_spawner_area = self.spawner_area
@@ -152,7 +150,6 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
         allowed_values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
         invalid_mask = ~np.isin(self.current_tetromino_area, allowed_values)
         self.current_tetromino_area[invalid_mask] = 0
-        # TODO: Stocker une variable pour le game_area avec uniquement le current tetromino ?
         # Encore une fois on calcule le nombre de valeurs uniques, mais dans cette "différence" de zones de jeu
         unique_val, unique_count = np.unique(self.current_tetromino_area, return_counts=True)
 

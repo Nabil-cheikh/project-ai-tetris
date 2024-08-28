@@ -13,7 +13,11 @@ def main():
 
     start_episode = 0
     if USE_CHECKPOINT:
-        agent.memory, agent.epsilon, start_episode = load_checkpoint(agent.model)
+        check_memory, check_epsilon, check_start_episode = load_checkpoint(agent.model)
+        if check_memory != None and check_epsilon != None:
+            agent.memory = check_memory
+            agent.epsilon = check_epsilon
+            start_episode = check_start_episode
 
     if PLAY_MODE == 'Agent':
 
@@ -60,6 +64,9 @@ def main():
                     agent.add_to_memory(current_state, next_states[best_action], reward, done)
                     # Update the current state
                     current_state = next_states[best_action]
+
+                if env.frame_count % 2 == 0: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
+                    env.execute_actions()
 
                 done = env.game_over()
                 # If done, print the score

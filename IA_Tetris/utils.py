@@ -87,6 +87,7 @@ class TetrisInfos:
 
     # 1=J, 2=Z, 3=O, 4=L, 5=T, 6=S, 7=I
 
+    # Positions for each rotation on board when spawned
     TETROMINOS = {
         1: { # J
             0: [(3,1), (4,1), (5,1), (5,2)],
@@ -132,6 +133,16 @@ class TetrisInfos:
         }
     }
 
+    TETROMINOS_FOR_PRINT = {
+        1: [(2,1), (1,1), (0,1), (0,0)], # J
+        2: [(0,0), (1,0), (1,1), (2,1)], # Z
+        3: [(1,0), (2,0), (1,1), (2,1)], # O
+        4: [(0,1), (1,1), (2,1), (2,0)], # L
+        5: [(1,0), (0,1), (1,1), (2,1)], # T
+        6: [(2,0), (1,0), (1,1), (0,1)], # S
+        7: [(0,0), (1,0), (2,0), (3,0)] # I
+    }
+
     def better_game_area(game_area, with_indexes=True):
         colored_game_area = ''
         if with_indexes:
@@ -149,11 +160,7 @@ class TetrisInfos:
     def print_tetromino(tetromino):
         s = ''
         tetromino_id = TetrisInfos.get_tetromino_id(tetromino)
-        tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][0]
-        if tetromino_id == 1:
-            tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][270]
-        elif tetromino_id == 4:
-            tetromino_pts = TetrisInfos.TETROMINOS[tetromino_id][90]
+        tetromino_pts = TetrisInfos.TETROMINOS_FOR_PRINT[tetromino_id]
         for y in range(2):
             for x in range(4):
                 if (x, y) in tetromino_pts:
