@@ -74,14 +74,15 @@ def main():
                 done = env.game_over()
                 # If done, print the score
                 if done:
+                    print('-----------------------')
                     print(f"Episode: {episode + 1}/{NB_EPISODES}")
                     env.get_results()
-                    print(f'  Agent:\n   -Memory: {len(agent.memory)}/{agent.memory.maxlen}\n   -Epsilon: {round(agent.epsilon, 2)}/1')
+                    print(f'Agent:\n  -Memory: {len(agent.memory)}/{agent.memory.maxlen}\n  -Epsilon: {round(agent.epsilon, 2)}/1')
 
                     if PRINT_GAME_OVER_AREA:
-                        print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(env.tetris._current_tetromino)}')
-                        print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(env.tetris.next_tetromino())}')
-                        print(TetrisInfos.better_game_area(env.tetris.game_area()))
+                        # print(f'Current Tetromino:\n{TetrisInfos.print_tetromino(env.tetris._current_tetromino)}')
+                        # print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(env.tetris.next_tetromino())}')
+                        print(TetrisInfos.better_game_area(env.tetris._last_game_area))
                     break
 
             # Train the agent after every episode

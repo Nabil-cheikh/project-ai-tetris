@@ -1,6 +1,5 @@
 import os
 
-
 ############ VARIABLES ############
 ROM_PATH = os.environ.get('ROM_PATH')
 CSV_PATH = os.environ.get('CSV_PATH')
@@ -21,9 +20,9 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 SHOW_GAME_WINDOW = True
 GAME_SPEED = 9 # 0 > max speed
 SEED = 1
-NB_EPISODES = 6000
+NB_EPISODES = 2000
 GB_NORMAL_FPS = 59.73
-PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
+PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'/'Replay' (> replay the best party done by the agent)
 
 # Prints debug infos
 PRINT_GAME_AREAS = False
@@ -33,10 +32,10 @@ PRINT_GAME_OVER_AREA = True
 # Agent
 BATCH_SIZE = 320
 EPOCHS = 10
-MEMORY_MAX_SIZE = 20000
+MEMORY_MAX_SIZE = 10000
 
 # Datas
-DATAS_STEP = 'prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv
+DATAS_STEP = 'Prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
@@ -63,5 +62,5 @@ INPUTS = [
 
 MODEL_PATH = os.path.join('data', 'models')
 CHECKPOINT_PATH = os.path.join('data', 'checkpoints')
-USE_CHECKPOINT = True # Mettre à True après un crash durant l'entrainement
+USE_CHECKPOINT = True
 CHECKPOINT_FREQUENCY = 10
