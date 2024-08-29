@@ -9,7 +9,7 @@ import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, mem_size=20000, epsilon=1.0, epsilon_min=0.03,
+    def __init__(self, mem_size=MEMORY_MAX_SIZE, epsilon=1.0, epsilon_min=0.03,
                   discount=0.95, replay_start_size=None):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
@@ -47,9 +47,13 @@ class TetrisAgent:
 
         return model
 
-    def add_to_memory(self, current_state, next_state, action, reward):
+    def add_to_memory(self, current_state, next_state, reward, done):
         '''Adds a play to the experience replay memory buffer'''
-        self.memory.append((current_state, next_state, action, reward))
+        self.memory = sorted(self.memory, key=lambda x: x[2])
+        if len(self.memory) == MEMORY_MAX_SIZE:
+            self.memory.pop(0)
+        self.memory.append((current_state, next_state, reward, done))
+        self.memory = deque(self.memory, maxlen=MEMORY_MAX_SIZE)
 
 
     def predict_value(self, state):
