@@ -30,6 +30,7 @@ def main():
 
             done = False
             best_action = None
+            total_reward = 0
             is_action_finished = True
             current_piece_id = TetrisInfos.get_tetromino_id(env.tetris.current_tetromino())
 
@@ -58,10 +59,12 @@ def main():
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines*100) ** 2 + env.hole_rewards() + env.bumpiness_rewards()
-                    env.total_rewards += reward
+                    reward = env.score_rewards() + (1+lines*100) ** 2
+                    penalty = (total_bumpiness+holes+sum_height)*2
+                    compensated_reward = reward - penalty
+                    env.total_rewards += compensated_reward
                     # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                    agent.add_to_memory(current_state, next_states[best_action], compensated_reward, done)
                     # Update the current state
                     current_state = next_states[best_action]
 
