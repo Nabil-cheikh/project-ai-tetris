@@ -19,7 +19,7 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 # Game
 SHOW_GAME_WINDOW = False
-GAME_SPEED = 2 # 0 > max speed
+GAME_SPEED = 0 # 0 > max speed
 SEED = 1
 NB_EPISODES = 3500
 GB_NORMAL_FPS = 59.73
