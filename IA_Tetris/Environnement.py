@@ -217,7 +217,7 @@ class TetrisEnv() :
         return rewards
 
     def _clear_lines(self, board):
-        lines_to_clear = [index for index, row in enumerate(board) if 0 not in row]
+        lines_to_clear = [index for index, row in enumerate(board) if 0 not in row and 8 not in row]
         if lines_to_clear:
             board = [row for index, row in enumerate(board) if index not in lines_to_clear]
             # Add new lines at the top
