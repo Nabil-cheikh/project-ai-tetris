@@ -59,7 +59,7 @@ def main():
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines*100) ** 2
+                    reward = env.score_rewards() + (1+lines*100) ** 2 + env.tetris.total_tetromino_used * 1.5
                     penalty = (total_bumpiness+holes+sum_height)*2
                     compensated_reward = reward - penalty
                     env.total_rewards += compensated_reward
