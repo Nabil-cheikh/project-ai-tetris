@@ -22,7 +22,7 @@ class TetrisAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = (self.epsilon - self.epsilon_min) / NB_EPISODES
         self.discount = discount
-        self.state_size = 4
+        self.state_size = STATE_SIZE
 
         if DATAS_STEP == 'Prod':
             self.model, self.loaded_memory, self.loaded_epsilon = load_model()

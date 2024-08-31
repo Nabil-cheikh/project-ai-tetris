@@ -230,11 +230,11 @@ class TetrisInfos:
         if PRINT_GAME_OVER_INFOS:
             print(PrintColor.cstr_with_arg('GAME OVER', 'pure red', True))
             print(f"Game Infos:\
-                    \n-Total rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
-                    \n-Game Score:{PrintColor.cstr_with_arg(score, 'pure green' if score > 0 else 'pure red', True)}\
-                    \n-Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines > 0 else 'pure red', True)}\
-                    \n-Time:{time}\
-                    \n-Tetrominos used:{nb_tetrominos_used}")
+                    \n  -Total rewards:{PrintColor.cstr_with_arg(reward, 'pure green' if reward > 0 else 'pure red', True)}\
+                    \n  -Game Score:{PrintColor.cstr_with_arg(score, 'pure green' if score > 0 else 'pure red', True)}\
+                    \n  -Lines:{PrintColor.cstr_with_arg(lines, 'pure green' if lines > 0 else 'pure red', True)}\
+                    \n  -Time:{time}\
+                    \n  -Tetrominos used:{nb_tetrominos_used}")
         data = Datas.update_datas(data, time, score, lines, reward, nb_tetrominos_used, seed, inputs)
         return data
 
@@ -251,11 +251,13 @@ class Datas:
             # Get current csv
             try:
                 # If exist
-
                 df = pd.read_csv(path)
+                print(f'Loaded CSV from path {path}')
             except FileNotFoundError:
                 # Else create new csv
                 df = pd.DataFrame(columns=COLUMN_NAMES)
+                print(f'CSV not found at path {path}')
             return df
         else:
+            print(f"Generate a new csv, because DATAS_STEP not set to 'Prod'")
             return pd.DataFrame(columns=COLUMN_NAMES)
