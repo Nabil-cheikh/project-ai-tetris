@@ -3,6 +3,7 @@ from pyboy import pyboy
 from pyboy import PyBoy
 import sys
 import numpy as np
+import pandas as pd
 from IA_Tetris.params import *
 from IA_Tetris.Better_Tetris_Wrapper import Tetris
 from IA_Tetris.utils import TetrisInfos
@@ -35,15 +36,29 @@ class TetrisEnv() :
         self.stack_actions = []
         self.total_rewards = 0
 
-        # /!\ ##########################################
-        # METTRE À FALSE QUAND ON COMMENCERA À AVOIR DE VRAIES DONNÉES
-        # Si c'est à True, ça va écraser le csv actuel
         TetrisEnv.df = Datas.get_dataframe()
-        # /!\ ##########################################
+        self.best_party_to_replay = 0
+        self.all_best_party_inputs = []
 
     def run_game(self, n_episodes = None):
+        if PLAY_MODE == 'Replay':
+            n_episodes = 1
+
+            best_lines = self.df[self.df.Lines == self.df.Lines.max()]
+            self.best_party_to_replay = best_lines.iloc[[best_lines.Rewards.argmax()]]
+
+            all_input_ids = [int(s) for s in self.best_party_to_replay.Inputs.iloc[0] if s.isdigit()]
+
+            inputs_serie = []
+            for i in all_input_ids:
+                inputs_serie.append(i)
+                if INPUTS[i] == 'down':
+                    self.all_best_party_inputs.append(inputs_serie)
+                    inputs_serie = []
+
+            self.seed = int(self.best_party_to_replay.Seed)
+
         self.tetris.start_game(timer_div=self.seed)
-        self.tetris.tick()
 
         if n_episodes == 0:
             self.ticks_loop()
@@ -68,6 +83,13 @@ class TetrisEnv() :
                 if rand_input != 'none':
                     self.pyboy_env.button(rand_input)
                 self.inputs.append(TetrisInfos.get_input_id(rand_input))
+            elif PLAY_MODE == 'Replay':
+                if self.tetris.is_new_tetromino():
+                    for a in self.all_best_party_inputs[0]:
+                        self.add_action_to_stack(INPUTS[a])
+                    self.all_best_party_inputs.pop(0)
+                if self.tetris.frames_until_tetro_spawn % 2 == 1: # pyboy.button calls 2 states : do input in current frame, and release input in next frame
+                    self.execute_actions()
 
             if self.game_over():
                 self.get_results()
@@ -164,7 +186,6 @@ class TetrisEnv() :
         return self.tetris.game_over()
 
     def actions(self, action, current_piece, rotation_done):
-        self.inputs.append(action)
         # print('action: ', action)
         # récupérer les infos importantes :
 
@@ -176,24 +197,26 @@ class TetrisEnv() :
         if len(self.stack_actions) == 0:
             if rotation != 0:
                 for _ in range(int(rotation / 90)):
-                    self.stack_actions.append('a')
+                    self.add_action_to_stack('a')
             if current_x != final_x:
                 diff_x = final_x
                 if diff_x > 0:
                     for _ in range(diff_x):
-                        self.stack_actions.append('right')
+                        self.add_action_to_stack('right')
                 else:
                     for _ in range(abs(diff_x)):
-                        self.stack_actions.append('left')
+                        self.add_action_to_stack('left')
             if current_y != final_y:
-                diff_y = final_y - current_y
-                for _ in range(diff_y):
-                    self.stack_actions.append('down')
+                self.add_action_to_stack('down')
 
         if len(self.stack_actions) == 0:
             self.execute_actions(True)
 
         return (current_x, current_y), done
+
+    def add_action_to_stack(self, action):
+        self.inputs.append(INPUTS.index(action))
+        self.stack_actions.append(action)
 
     def execute_actions(self, force_down=False):
         if len(self.stack_actions) > 0:
@@ -205,9 +228,9 @@ class TetrisEnv() :
                 self.pyboy_env.button(self.stack_actions[0])
                 self.stack_actions.pop(0)
                 if len(self.stack_actions) == 0: # il y a des cas où il n'y a pas de "down" dans la liste d'actions "prédite"
-                    self.stack_actions.append('down')
+                    self.add_action_to_stack('down')
         if force_down:
-            self.stack_actions.append('down')
+            self.add_action_to_stack('down')
 
     def all_actions_done(self):
         return len(self.stack_actions) == 0
@@ -335,6 +358,7 @@ class TetrisEnv() :
         return self.total_rewards
 
     def reset(self):
+        self.inputs = []
         self.stack_actions = []
         self.total_rewards = 0
         self.tetris.reset_game(self.seed)

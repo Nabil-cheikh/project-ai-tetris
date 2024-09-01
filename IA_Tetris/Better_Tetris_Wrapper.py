@@ -122,14 +122,15 @@ class Tetris():# Au final on va pas faire d'héritage, c'est trop compliqué
                 print(f'Next Tetromino:\n{TetrisInfos.print_tetromino(self.next_tetromino())}')
                 print(TetrisInfos.better_game_area(self.game_area()))
 
-            if PLAY_MODE == 'Random' or PLAY_MODE == 'Agent':
+            if PLAY_MODE != 'Human':
                 # Fix to allow spamming down button when a new tetromino spawn
                 self.pyboy.button_release('down')
 
         # Update values
-        self._last_spawner_area = self.spawner_area
-        self.last_current_tetromino_area = self.current_tetromino_area
-        self._last_game_area = self.game_area()
+        if not self.game_over():
+            self._last_spawner_area = self.spawner_area
+            self.last_current_tetromino_area = self.current_tetromino_area
+            self._last_game_area = self.game_area()
 
         self._last_time_fps = time.time()
 

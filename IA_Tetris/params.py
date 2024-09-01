@@ -1,6 +1,5 @@
 import os
 
-
 ############ VARIABLES ############
 ROM_PATH = os.environ.get('ROM_PATH')
 CSV_PATH = os.environ.get('CSV_PATH')
@@ -23,7 +22,7 @@ GAME_SPEED = 0 # 0 > max speed
 SEED = 1
 NB_EPISODES = 3500
 GB_NORMAL_FPS = 59.73
-PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
+PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'/'Replay' (> replay the best party done by the agent)
 
 # Prints debug infos
 PRINT_GAME_AREAS = False
@@ -34,9 +33,18 @@ PRINT_GAME_OVER_AREA = False
 BATCH_SIZE = 512
 EPOCHS = 10
 MEMORY_MAX_SIZE = 10000
+DISCOUNT = 0.95
+EPSILON_MIN = 0.03
+STATE_SIZE = 4
 
 # Datas
 DATAS_STEP = 'Prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv
+
+# Save models and checkpoints
+MODEL_PATH = os.path.join('data', 'models')
+CHECKPOINT_PATH = os.path.join('data', 'checkpoints')
+USE_CHECKPOINT = True
+CHECKPOINT_FREQUENCY = 10
 
 ############ CONSTANTS ############
 COLUMN_NAMES = ['Time', 'Score', 'Lines', 'Rewards', 'NbBlocUsed', 'Seed', 'Inputs']
@@ -60,8 +68,3 @@ INPUTS = [
     'down',
     'a'
 ]
-
-MODEL_PATH = os.path.join('data', 'models')
-CHECKPOINT_PATH = os.path.join('data', 'checkpoints')
-USE_CHECKPOINT = True # Mettre à True après un crash durant l'entrainement
-CHECKPOINT_FREQUENCY = 10
