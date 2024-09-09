@@ -39,29 +39,27 @@ def load_model():
         memo_file_name = 'memory.pkl'
         as_file_name = 'agent_state.pkl'
 
-        memo_path = os.path.join(CHECKPOINT_PATH, memo_file_name)
-        as_path = os.path.join(CHECKPOINT_PATH, as_file_name)
+        if not paths:
+            print(PrintColor.cstr_with_arg('No model to load', 'pure red', True))
+            return (None, None, None)
 
-        try:
-            most_recent_model_path = sorted(paths)[-1]
-            with open(memo_path, 'rb') as f:
-                memory = pickle.load(f)
-            with open(as_path, 'rb') as f:
-                agent_state = pickle.load(f)
-            if agent_state['episode'] == NB_EPISODES:
-                agent_state['episode'] = 0
-            print(PrintColor.cstr_with_arg(f"[Local] Loaded model (memory size: {len(memory)}, epsilon: {agent_state['epsilon']}) from path: {most_recent_model_path}", \
-                'pure green', True))
-            return keras.models.load_model(most_recent_model_path), memory, agent_state['epsilon']
-        except:
-            print(PrintColor.cstr_with_arg('[Local] No model to load', 'pure red', True))
-            return None, None, None
+        most_recent_model_path = sorted(paths)[-1]
+        with open(os.path.join(CHECKPOINT_PATH, memo_file_name), 'rb') as f:
+            memory = pickle.load(f)
+        with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'rb') as f:
+            agent_state = pickle.load(f)
+
+        print(PrintColor.cstr_with_arg(f"[Local] Loaded model (memory size: {len(memory)}, epsilon: {agent_state['epsilon']}) from path: {most_recent_model_path}", \
+            'pure green', True))
+        return keras.models.load_model(most_recent_model_path), memory, agent_state['epsilon']
 
     elif MODEL_TARGET == 'gcs':
         client = storage.Client()
         blobs = list(client.get_bucket(BUCKET_NAME).list_blobs(prefix='model'))
 
         bucket = client.bucket(BUCKET_NAME)
+        memo_path = os.path.join(CHECKPOINT_PATH, memo_file_name)
+        as_path = os.path.join(CHECKPOINT_PATH, as_file_name)
 
         try:
             latest_blob = max(blobs, key=lambda x: x.updated)
@@ -70,21 +68,19 @@ def load_model():
 
             blob_memo = bucket.blob(f'checkpoint/{memo_file_name}')
             blob_memo.download_to_filename(memo_path)
-            with open(memo_path, 'rb') as f:
+            with open(os.path.join(CHECKPOINT_PATH, memo_file_name), 'rb') as f:
                 memory = pickle.load(f)
 
             blob_as = bucket.blob(f'checkpoint/{as_file_name}')
             blob_as.download_to_filename(as_path)
-            with open(as_path, 'rb') as f:
+            with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'rb') as f:
                 agent_state = pickle.load(f)
-            if agent_state['episode'] == NB_EPISODES:
-                agent_state['episode'] = 0
 
             print(PrintColor.cstr_with_arg(f"[GCS] Loaded model (memory size: {len(agent_state['memory'])}, epsilon: {agent_state['epsilon']}) from bucket: {BUCKET_NAME}", \
                 'pure green', True))
             return keras.models.load_model(latest_model_path_to_save), agent_state['memory'], agent_state['epsilon']
         except:
-            print(PrintColor.cstr_with_arg('[GCS] No model to load', 'pure red', True))
+            print(PrintColor.cstr_with_arg('No model to load', 'pure red', True))
             return None, None, None
 
     return None, None, None
@@ -121,28 +117,24 @@ def load_checkpoint(model):
     memo_file_name = 'memory.pkl'
     as_file_name = 'agent_state.pkl'
 
-    check_path = os.path.join(CHECKPOINT_PATH, check_file_name)
-    memo_path = os.path.join(CHECKPOINT_PATH, memo_file_name)
-    as_path = os.path.join(CHECKPOINT_PATH, as_file_name)
-
     if MODEL_TARGET == 'local':
-        try:
-            model.load_weights(check_path)
+        path = os.path.join(CHECKPOINT_PATH, check_file_name)
+        model.load_weights(path)
 
-            with open(memo_path, 'rb') as f:
-                memory = pickle.load(f)
-            with open(as_path, 'rb') as f:
-                agent_state = pickle.load(f)
-            print(PrintColor.cstr_with_arg(f"[Local] Loaded checkpoint at episode {agent_state['episode']} (memory size: {len(memory)}, epsilon: {agent_state['epsilon']}) from path: {check_path}", \
-                'pure green', True))
-            return memory, agent_state['epsilon'], agent_state['episode']
-        except:
-            print(PrintColor.cstr_with_arg('[Local] No checkpoint to load', 'pure red', True))
-            return None, None, None
-
+        with open(os.path.join(CHECKPOINT_PATH, memo_file_name), 'rb') as f:
+            memory = pickle.load(f)
+        with open(os.path.join(CHECKPOINT_PATH, as_file_name), 'rb') as f:
+            agent_state = pickle.load(f)
+        print(PrintColor.cstr_with_arg(f"[Local] Loaded checkpoint at episode {agent_state['episode']} (memory size: {len(memory)}, epsilon: {agent_state['epsilon']}) from path: {path}", \
+            'pure green', True))
+        return memory, agent_state['epsilon'], agent_state['episode']
     elif MODEL_TARGET == 'gcs':
         client = storage.Client()
         bucket = client.bucket(BUCKET_NAME)
+
+        check_path = os.path.join(CHECKPOINT_PATH, check_file_name)
+        memo_path = os.path.join(CHECKPOINT_PATH, memo_file_name)
+        as_path = os.path.join(CHECKPOINT_PATH, as_file_name)
 
         try:
             blob_check = bucket.blob(f'checkpoint/{check_file_name}')
@@ -163,7 +155,7 @@ def load_checkpoint(model):
                 'pure green', True))
             return memory, agent_state['epsilon'], agent_state['episode']
         except:
-            print(PrintColor.cstr_with_arg('[GCS] No checkpoint to load', 'pure red', True))
+            print(PrintColor.cstr_with_arg('No checkpoint to load', 'pure red', True))
             return None, None, None
 
     return None, None, None

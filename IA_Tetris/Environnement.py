@@ -213,11 +213,11 @@ class TetrisEnv() :
         return len(self.stack_actions) == 0
 
     def lines_rewards(self):
-        rewards = self.tetris.lines*200
+        rewards = self.tetris.lines
         return rewards
 
     def _clear_lines(self, board):
-        lines_to_clear = [index for index, row in enumerate(board) if 0 not in row]
+        lines_to_clear = [index for index, row in enumerate(board) if 0 not in row and 8 not in row]
         if lines_to_clear:
             board = [row for index, row in enumerate(board) if index not in lines_to_clear]
             # Add new lines at the top
@@ -290,7 +290,7 @@ class TetrisEnv() :
             subtraction_result = abs(column_heights[i + 1] - column_heights[i])
             rewards += subtraction_result
 
-        return rewards * (-2)
+        return rewards * (-10)
 
     def heigh_rewards(self):
         rewards = 0
@@ -321,7 +321,7 @@ class TetrisEnv() :
                 if not found_tetromino and game_area[x, y] != 0:
                     found_tetromino = True
 
-        rewards = hole * (-2)
+        rewards = hole * (-10)
         return rewards
 
     # def frame_rewards(self):

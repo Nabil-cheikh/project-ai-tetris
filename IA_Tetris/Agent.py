@@ -9,18 +9,18 @@ import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, mem_size=MEMORY_MAX_SIZE, epsilon=1.0, epsilon_min=0.03,
-                  discount=0.95, replay_start_size=None):
+    def __init__(self, mem_size=MEMORY_MAX_SIZE, epsilon=1.0, epsilon_min=0.1,
+                 discount=0.95, replay_start_size=None):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
         self.loaded_memory = self.memory
         self.epsilon = epsilon
         self.loaded_epsilon = self.epsilon
         if not replay_start_size:
-            replay_start_size = mem_size / 2
-        self.replay_start_size = 5000
+            replay_start_size = mem_size / 10
+        self.replay_start_size = replay_start_size
         self.epsilon_min = epsilon_min
-        self.epsilon_decay = (self.epsilon - self.epsilon_min) / 1000
+        self.epsilon_decay = 0.995
         self.discount = discount
         self.state_size = 4
 
@@ -41,6 +41,7 @@ class TetrisAgent:
 
         model.add(Dense(64, input_dim=self.state_size, activation="relu"))
         model.add(Dense(32, activation="relu"))
+        model.add(Dense(16, activation="relu"))
         model.add(Dense(8, activation="relu"))
         model.add(Dense(1, activation="linear"))
         model.compile(loss="mse", optimizer=Adam(learning_rate=0.001))
@@ -49,11 +50,7 @@ class TetrisAgent:
 
     def add_to_memory(self, current_state, next_state, reward, done):
         '''Adds a play to the experience replay memory buffer'''
-        self.memory = sorted(self.memory, key=lambda x: x[2])
-        if len(self.memory) == MEMORY_MAX_SIZE:
-            self.memory.pop(0)
         self.memory.append((current_state, next_state, reward, done))
-        self.memory = deque(self.memory, maxlen=MEMORY_MAX_SIZE)
 
 
     def predict_value(self, state):
@@ -88,7 +85,6 @@ class TetrisAgent:
 
         # If the memory is less than the maximal size of ex replay, and it's bigger than our batch size
         if n >= self.replay_start_size and n >= batch_size:
-            print("train")
 
             batch = random.sample(self.memory, batch_size)
             # Get the expected score for the next states, in batch (better performance)
@@ -117,4 +113,4 @@ class TetrisAgent:
 
             # Update the exploration variable
             if self.epsilon > self.epsilon_min:
-                self.epsilon -= self.epsilon_decay
+                self.epsilon *= self.epsilon_decay

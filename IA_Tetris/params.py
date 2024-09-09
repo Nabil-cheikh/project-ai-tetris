@@ -19,21 +19,21 @@ BQ_DATASET = os.environ.get('BQ_DATASET')
 
 # Game
 SHOW_GAME_WINDOW = False
-GAME_SPEED = 2 # 0 > max speed
-SEED = 1
-NB_EPISODES = 3500
+GAME_SPEED = 0 # 0 > max speed
+SEED = None
+NB_EPISODES = 10000
 GB_NORMAL_FPS = 59.73
 PLAY_MODE = 'Agent' # 'Random'/'Human'/'Agent'
 
 # Prints debug infos
-PRINT_GAME_AREAS = False
+PRINT_GAME_AREAS = True
 PRINT_GAME_OVER_INFOS = True
 PRINT_GAME_OVER_AREA = False
 
 # Agent
-BATCH_SIZE = 512
-EPOCHS = 10
-MEMORY_MAX_SIZE = 10000
+BATCH_SIZE = 128
+EPOCHS = 2
+MEMORY_MAX_SIZE = 25000
 
 # Datas
 DATAS_STEP = 'Prod' # 'Test' > replace csv / 'Prod' > add new datas to last csv

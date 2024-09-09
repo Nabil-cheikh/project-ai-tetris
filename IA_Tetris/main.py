@@ -7,7 +7,8 @@ from IA_Tetris.registry import *
 def main():
     env = TetrisEnv()
     # state_size = env.game_area().shape[0] * env.game_area_only().shape[1]  # Adjust based on your state representation
-    agent = TetrisAgent(mem_size=MEMORY_MAX_SIZE, discount=0.95)
+    agent = TetrisAgent(mem_size=MEMORY_MAX_SIZE, epsilon=1.0, epsilon_min=0.2,
+             discount=0.99, replay_start_size=None)
     # agent.state_size = state_size  # Set the state size in the agent
 
     start_episode = 0
@@ -59,12 +60,10 @@ def main():
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (1+lines*100) ** 2 + env.tetris.total_tetromino_used * 1.5
-                    penalty = (total_bumpiness+holes+sum_height)*2
-                    compensated_reward = reward - penalty
-                    env.total_rewards += compensated_reward
+                    reward = env.score_rewards() + (env.lines_rewards()*100)**2 + env.hole_rewards() + env.bumpiness_rewards() + env.heigh_rewards()
+                    env.total_rewards += reward
                     # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], compensated_reward, done)
+                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
                     # Update the current state
                     current_state = next_states[best_action]
 
@@ -85,7 +84,8 @@ def main():
                     break
 
             # Train the agent after every episode
-            agent.train(batch_size=BATCH_SIZE, epochs=EPOCHS)
+            if (episode + 1) % 10 == 0:
+                agent.train(batch_size=BATCH_SIZE, epochs=EPOCHS)
 
             if episode % CHECKPOINT_FREQUENCY == 0:
                 save_checkpoint(agent.model, agent.memory, agent.epsilon, episode, 'model.weights')
