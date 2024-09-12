@@ -9,7 +9,7 @@ import numpy as np
 
 class TetrisAgent:
 
-    def __init__(self, mem_size=MEMORY_MAX_SIZE, epsilon=1.0, epsilon_min=0.1,
+    def __init__(self, mem_size=MEMORY_MAX_SIZE, epsilon=1.0, epsilon_min=0.15,
                  discount=0.95, replay_start_size=None):
         self.action_size = 4 # down, left, right, orientation
         self.memory = deque(maxlen=mem_size)
@@ -39,7 +39,8 @@ class TetrisAgent:
         '''Builds a Keras deep neural network model'''
         model = Sequential()
 
-        model.add(Dense(64, input_dim=self.state_size, activation="relu"))
+        model.add(Dense(128, input_dim=self.state_size, activation="relu"))
+        model.add(Dense(64, activation="relu"))
         model.add(Dense(32, activation="relu"))
         model.add(Dense(16, activation="relu"))
         model.add(Dense(8, activation="relu"))
@@ -78,7 +79,7 @@ class TetrisAgent:
         return best_state
 
 
-    def train(self, batch_size=246, epochs=3):
+    def train(self, batch_size=128, epochs=2):
         '''Trains the agent'''
         n = len(self.memory)
         #print("taille de la mémoire", n)

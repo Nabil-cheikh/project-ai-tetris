@@ -60,10 +60,11 @@ def main():
                     curr_piece_position, is_action_finished = env.actions(best_action, curr_piece_position, rotation_done)
 
                     lines, total_bumpiness, holes, sum_height = next_states[best_action]
-                    reward = env.score_rewards() + (env.lines_rewards()*100)**2 + env.hole_rewards() + env.bumpiness_rewards() + env.heigh_rewards()
-                    env.total_rewards += reward
+                    reward = lines*3000
+                    penalty = (total_bumpiness*2)+ (holes*2) +(sum_height*2)
+                    total_reward += reward - penalty
                     # Add the experience to the agent's memory
-                    agent.add_to_memory(current_state, next_states[best_action], reward, done)
+                    agent.add_to_memory(current_state, next_states[best_action], total_reward, done)
                     # Update the current state
                     current_state = next_states[best_action]
 
@@ -74,6 +75,7 @@ def main():
                 # If done, print the score
                 if done:
                     print(f"Episode: {episode + 1}/{NB_EPISODES}")
+                    print(f'Total Reward : {total_reward}')
                     env.get_results()
                     print(f'  Agent:\n   -Memory: {len(agent.memory)}/{agent.memory.maxlen}\n   -Epsilon: {round(agent.epsilon, 2)}/1')
 

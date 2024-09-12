@@ -79,7 +79,7 @@ class TetrisEnv() :
     def get_results(self):
         TetrisEnv.df = TetrisInfos.game_over(data=TetrisEnv.df,
                                                 play_time=self.tetris.play_time,
-                                                reward=self.get_rewards(),
+                                                reward=0,
                                                 score=self.tetris.score,
                                                 lines=self.tetris.lines,
                                                 nb_tetrominos_used=self.tetris.total_tetromino_used,
@@ -159,6 +159,11 @@ class TetrisEnv() :
             # print(len(states))
 
         return states
+
+    def _game_over(self):
+        if self.tetris.game_over():
+            return 10000
+        return 0
 
     def game_over(self):
         return self.tetris.game_over()
@@ -304,8 +309,8 @@ class TetrisEnv() :
                     rewards -= 10
         return rewards
 
-    def score_rewards(self):
-        rewards = self.tetris.score*1
+    def _score(self):
+        rewards = self.tetris.score
         return rewards
 
     def hole_rewards(self):
